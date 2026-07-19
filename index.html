@@ -1,0 +1,1663 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>STC Connect — Retail POS &amp; Billing</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700;800&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<style>
+:root{
+  --paper:#F3F5F2;
+  --card:#FFFFFF;
+  --ink:#101D26;
+  --sub:#5C6B75;
+  --faint:#8FA0AA;
+  --line:#DEE4E1;
+  --blue:#1849C6;
+  --blue-deep:#0E2A78;
+  --blue-soft:#E8EDFB;
+  --navy:#0B1830;
+  --navy-2:#122448;
+  --amber:#F5A623;
+  --amber-soft:#FDF3DC;
+  --green:#0E8A5F;
+  --green-soft:#E2F3EC;
+  --red:#D23B2E;
+  --red-soft:#FBE9E7;
+  --radius:10px;
+  --shadow:0 1px 2px rgba(16,29,38,.06), 0 4px 16px rgba(16,29,38,.06);
+  --font-ui:'IBM Plex Sans', ui-sans-serif, system-ui, sans-serif;
+  --font-display:'Archivo', 'IBM Plex Sans', sans-serif;
+  --font-mono:'IBM Plex Mono', ui-monospace, monospace;
+}
+*{box-sizing:border-box; margin:0; padding:0}
+html,body{height:100%}
+body{
+  font-family:var(--font-ui);
+  background:var(--paper);
+  color:var(--ink);
+  font-size:14px;
+  line-height:1.5;
+  -webkit-font-smoothing:antialiased;
+}
+button{font-family:inherit; cursor:pointer}
+input,select,textarea{font-family:inherit; font-size:14px; color:var(--ink)}
+:focus-visible{outline:2px solid var(--blue); outline-offset:2px; border-radius:4px}
+::placeholder{color:var(--faint)}
+h1,h2,h3{font-family:var(--font-display); letter-spacing:-.01em}
+.mono{font-family:var(--font-mono)}
+.num{font-variant-numeric:tabular-nums}
+
+/* ---------- Login ---------- */
+#login{
+  min-height:100vh; display:flex; align-items:center; justify-content:center;
+  background:
+    radial-gradient(900px 500px at 85% -10%, rgba(24,73,198,.18), transparent 60%),
+    radial-gradient(700px 420px at -10% 110%, rgba(245,166,35,.14), transparent 55%),
+    var(--navy);
+  padding:24px;
+}
+.login-card{
+  width:100%; max-width:400px; background:var(--card); border-radius:16px;
+  padding:34px 32px 28px; box-shadow:0 24px 60px rgba(0,0,0,.35);
+}
+.brandmark{display:flex; align-items:center; gap:12px; margin-bottom:6px}
+.fanlogo{width:44px; height:44px; flex:none}
+.fanlogo .blades{transform-origin:50% 50%; animation:spin 9s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion: reduce){ .fanlogo .blades{animation:none} }
+.brand-name{font-family:var(--font-display); font-weight:800; font-size:22px; letter-spacing:.01em}
+.brand-name span{color:var(--blue)}
+.brand-tag{font-size:11.5px; color:var(--sub); letter-spacing:.14em; text-transform:uppercase; margin-bottom:26px}
+.login-card h1{font-size:17px; margin-bottom:16px; font-weight:700}
+.demo-creds{
+  margin-top:20px; border:1px dashed var(--line); border-radius:10px; padding:12px 14px;
+  font-size:12.5px; color:var(--sub); background:#FAFBFA;
+}
+.demo-creds b{color:var(--ink); font-weight:600}
+.demo-creds .mono{font-size:12px}
+.login-err{color:var(--red); font-size:12.5px; margin-top:10px; display:none}
+
+/* ---------- Fields & buttons ---------- */
+.field{margin-bottom:14px}
+.field label{display:block; font-size:12px; font-weight:600; color:var(--sub); margin-bottom:5px; letter-spacing:.02em}
+.field input,.field select,.field textarea{
+  width:100%; border:1px solid var(--line); border-radius:8px; padding:9px 11px;
+  background:#fff; transition:border-color .12s;
+}
+.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--blue); outline:none; box-shadow:0 0 0 3px rgba(24,73,198,.12)}
+.field .hint{font-size:11.5px; color:var(--faint); margin-top:4px}
+.frow{display:flex; gap:12px}
+.frow .field{flex:1}
+.btn{
+  display:inline-flex; align-items:center; justify-content:center; gap:7px;
+  border:1px solid var(--line); background:#fff; color:var(--ink);
+  border-radius:8px; padding:8px 14px; font-size:13.5px; font-weight:600;
+  transition:background .12s, border-color .12s, transform .05s;
+}
+.btn:hover{background:#F4F6F4}
+.btn:active{transform:translateY(1px)}
+.btn.primary{background:var(--blue); border-color:var(--blue); color:#fff}
+.btn.primary:hover{background:var(--blue-deep); border-color:var(--blue-deep)}
+.btn.danger{color:var(--red); border-color:#EAC5C1}
+.btn.danger:hover{background:var(--red-soft)}
+.btn.ghost{border-color:transparent; background:transparent}
+.btn.ghost:hover{background:#EDF0ED}
+.btn.wide{width:100%}
+.btn.sm{padding:5px 10px; font-size:12.5px; border-radius:7px}
+.btn.lg{padding:12px 18px; font-size:15px; border-radius:10px}
+.btn:disabled{opacity:.45; cursor:not-allowed}
+
+/* ---------- App frame ---------- */
+#app{display:none; min-height:100vh}
+#app.on{display:grid; grid-template-columns:220px 1fr}
+#side{
+  background:var(--navy); color:#C6D2E8; display:flex; flex-direction:column;
+  position:sticky; top:0; height:100vh;
+}
+.side-brand{display:flex; align-items:center; gap:10px; padding:18px 16px 14px; border-bottom:1px solid rgba(255,255,255,.08)}
+.side-brand .fanlogo{width:34px; height:34px}
+.side-brand .t{font-family:var(--font-display); font-weight:800; color:#fff; font-size:16px; line-height:1.15}
+.side-brand .t small{display:block; font-family:var(--font-mono); font-weight:500; font-size:9.5px; letter-spacing:.22em; color:#7E93BC}
+#nav{padding:10px 8px; flex:1; overflow-y:auto}
+.nav-btn{
+  display:flex; align-items:center; gap:11px; width:100%; text-align:left;
+  background:none; border:none; color:#ADBCD8; padding:9px 12px; border-radius:8px;
+  font-size:13.5px; font-weight:500; margin-bottom:2px;
+}
+.nav-btn svg{width:18px; height:18px; flex:none; opacity:.85}
+.nav-btn:hover{background:var(--navy-2); color:#fff}
+.nav-btn.on{background:var(--blue); color:#fff}
+.nav-btn.on svg{opacity:1}
+.side-foot{padding:12px 14px; border-top:1px solid rgba(255,255,255,.08); font-size:12px; color:#7E93BC}
+.side-foot .who{color:#fff; font-weight:600; font-size:12.5px}
+.side-foot .role{font-family:var(--font-mono); font-size:10px; letter-spacing:.14em; text-transform:uppercase; color:var(--amber)}
+.side-foot button{margin-top:8px; width:100%; background:none; border:1px solid rgba(255,255,255,.18); color:#C6D2E8; border-radius:7px; padding:6px; font-size:12px}
+.side-foot button:hover{background:var(--navy-2); color:#fff}
+
+#main-wrap{display:flex; flex-direction:column; min-width:0}
+#top{
+  display:flex; align-items:center; gap:14px; padding:12px 24px;
+  background:#fff; border-bottom:1px solid var(--line); position:sticky; top:0; z-index:20;
+}
+#top h2{font-size:17px; font-weight:700}
+#top .spacer{flex:1}
+.store-pick{display:flex; align-items:center; gap:8px; font-size:12.5px; color:var(--sub)}
+.store-pick select{border:1px solid var(--line); border-radius:7px; padding:6px 8px; background:#fff; font-weight:600}
+#top .date{font-family:var(--font-mono); font-size:12px; color:var(--sub)}
+#main{padding:22px 24px 60px; flex:1}
+
+/* ---------- Cards, stats, tables ---------- */
+.card{background:var(--card); border:1px solid var(--line); border-radius:var(--radius); box-shadow:var(--shadow)}
+.card .card-h{display:flex; align-items:center; gap:10px; padding:13px 16px; border-bottom:1px solid var(--line)}
+.card .card-h h3{font-size:14px; font-weight:700}
+.card .card-h .r{margin-left:auto; display:flex; gap:8px; align-items:center}
+.card .card-b{padding:16px}
+.grid{display:grid; gap:16px}
+.g4{grid-template-columns:repeat(4,1fr)}
+.g3{grid-template-columns:repeat(3,1fr)}
+.g2{grid-template-columns:repeat(2,1fr)}
+.g2-1{grid-template-columns:2fr 1fr}
+.stat{padding:15px 16px 13px}
+.stat .k{font-size:11.5px; font-weight:600; color:var(--sub); letter-spacing:.06em; text-transform:uppercase}
+.stat .v{font-family:var(--font-display); font-weight:800; font-size:26px; margin-top:4px; letter-spacing:-.01em}
+.stat .d{font-size:12px; color:var(--sub); margin-top:2px}
+.stat.blue{border-top:3px solid var(--blue)}
+.stat.green{border-top:3px solid var(--green)}
+.stat.amber{border-top:3px solid var(--amber)}
+.stat.red{border-top:3px solid var(--red)}
+
+.table-wrap{overflow-x:auto}
+table.tbl{width:100%; border-collapse:collapse; font-size:13px}
+.tbl th{
+  text-align:left; font-size:11px; font-weight:600; color:var(--sub);
+  text-transform:uppercase; letter-spacing:.07em; padding:9px 12px;
+  border-bottom:1px solid var(--line); background:#FAFBFA; white-space:nowrap;
+}
+.tbl td{padding:9px 12px; border-bottom:1px solid #ECEFEC; vertical-align:middle}
+.tbl tr:last-child td{border-bottom:none}
+.tbl tr.click{cursor:pointer}
+.tbl tr.click:hover td{background:#F6F8FB}
+.tbl .r,.tbl th.r{text-align:right}
+.tbl .c{text-align:center}
+.empty{padding:30px 16px; text-align:center; color:var(--faint); font-size:13px}
+
+.chip{
+  display:inline-block; font-family:var(--font-mono); font-size:11px; font-weight:500;
+  background:#F1F3F1; border:1px solid var(--line); border-radius:5px; padding:2px 7px;
+  color:var(--sub); white-space:nowrap;
+}
+.tag{display:inline-block; font-size:11px; font-weight:700; border-radius:20px; padding:2.5px 10px; white-space:nowrap}
+.tag.green{background:var(--green-soft); color:var(--green)}
+.tag.amber{background:var(--amber-soft); color:#9A6A0B}
+.tag.red{background:var(--red-soft); color:var(--red)}
+.tag.blue{background:var(--blue-soft); color:var(--blue-deep)}
+.tag.grey{background:#EEF1EE; color:var(--sub)}
+
+.page-h{display:flex; align-items:center; gap:12px; margin-bottom:16px; flex-wrap:wrap}
+.page-h h2{font-size:19px; font-weight:800}
+.page-h .sub{color:var(--sub); font-size:13px}
+.page-h .r{margin-left:auto; display:flex; gap:8px; flex-wrap:wrap}
+.search{
+  display:flex; align-items:center; gap:8px; background:#fff; border:1px solid var(--line);
+  border-radius:8px; padding:7px 11px; min-width:240px;
+}
+.search input{border:none; outline:none; flex:1; background:none}
+.search svg{width:15px; height:15px; color:var(--faint); flex:none}
+.filters{display:flex; gap:6px; flex-wrap:wrap}
+.fchip{border:1px solid var(--line); background:#fff; border-radius:20px; padding:5px 13px; font-size:12.5px; font-weight:600; color:var(--sub)}
+.fchip.on{background:var(--navy); border-color:var(--navy); color:#fff}
+
+/* ---------- POS ---------- */
+.pos{display:grid; grid-template-columns:1fr 400px; gap:18px; align-items:start}
+.pos-left .search{margin-bottom:12px; padding:10px 13px}
+.pos-left .search input{font-size:15px}
+.pgrid{display:grid; grid-template-columns:repeat(auto-fill,minmax(168px,1fr)); gap:10px}
+.pcard{
+  background:#fff; border:1px solid var(--line); border-radius:10px; padding:11px 12px 10px;
+  cursor:pointer; text-align:left; transition:border-color .1s, box-shadow .1s; position:relative;
+}
+.pcard:hover{border-color:var(--blue); box-shadow:0 0 0 3px rgba(24,73,198,.1)}
+.pcard .cat{font-size:10px; font-weight:700; letter-spacing:.1em; text-transform:uppercase; color:var(--blue)}
+.pcard .nm{font-weight:600; font-size:13px; line-height:1.3; margin:3px 0 7px; min-height:34px}
+.pcard .pr{font-family:var(--font-display); font-weight:800; font-size:15px}
+.pcard .stk{font-size:11px; color:var(--sub); margin-top:2px}
+.pcard.out{opacity:.45; cursor:not-allowed}
+.pcard .lowdot{position:absolute; top:9px; right:9px; width:8px; height:8px; border-radius:50%; background:var(--amber)}
+.pcard .outdot{background:var(--red)}
+
+.bill-panel{position:sticky; top:76px}
+.bill{
+  background:#fff; border:1px solid var(--line); border-radius:12px; overflow:hidden;
+  box-shadow:var(--shadow);
+}
+.bill-head{
+  background:var(--navy); color:#fff; padding:12px 16px;
+  display:flex; align-items:baseline; gap:10px;
+}
+.bill-head .no{font-family:var(--font-mono); font-size:13px; color:var(--amber); letter-spacing:.04em}
+.bill-head .t{font-family:var(--font-display); font-weight:700; font-size:14px}
+.bill-head .r{margin-left:auto; font-family:var(--font-mono); font-size:11px; color:#8FA3C9}
+.perf{height:14px; background:
+  radial-gradient(circle at 8px 7px, var(--paper) 5px, transparent 5.5px) left center/16px 14px repeat-x,
+  #fff;
+  border-bottom:1px dashed var(--line)}
+.bill-b{padding:12px 16px}
+.bill-cust{display:flex; gap:8px; margin-bottom:10px}
+.bill-cust select{flex:1; border:1px solid var(--line); border-radius:7px; padding:7px 9px; background:#fff}
+.bill-lines{max-height:262px; overflow-y:auto; margin:0 -16px; padding:0 16px}
+.bline{display:grid; grid-template-columns:1fr 86px 74px 24px; gap:8px; align-items:center; padding:7px 0; border-bottom:1px solid #F0F2F0}
+.bline .nm{font-size:12.5px; font-weight:600; line-height:1.25}
+.bline .sk{font-family:var(--font-mono); font-size:10px; color:var(--faint)}
+.qty{display:flex; align-items:center; border:1px solid var(--line); border-radius:7px; overflow:hidden}
+.qty button{width:24px; height:26px; border:none; background:#F6F8F6; font-size:14px; font-weight:700; color:var(--sub)}
+.qty button:hover{background:var(--blue-soft); color:var(--blue)}
+.qty input{width:100%; border:none; text-align:center; font-weight:600; font-size:13px; -moz-appearance:textfield}
+.qty input::-webkit-outer-spin-button,.qty input::-webkit-inner-spin-button{-webkit-appearance:none}
+.bline .amt{text-align:right; font-weight:600; font-size:12.5px}
+.bline .x{border:none; background:none; color:var(--faint); font-size:15px; line-height:1}
+.bline .x:hover{color:var(--red)}
+.bill-empty{padding:26px 0; text-align:center; color:var(--faint); font-size:12.5px}
+.bill-tot{border-top:1px dashed var(--line); margin-top:8px; padding-top:10px; font-size:13px}
+.trow{display:flex; justify-content:space-between; padding:2.5px 0; color:var(--sub)}
+.trow b{color:var(--ink)}
+.trow.grand{font-family:var(--font-display); font-size:19px; font-weight:800; color:var(--ink); padding-top:7px; margin-top:5px; border-top:1px solid var(--line)}
+.disc-row{display:flex; gap:8px; align-items:center; margin:8px 0}
+.disc-row .lbl{font-size:12px; font-weight:600; color:var(--sub); flex:1}
+.disc-row select,.disc-row input{border:1px solid var(--line); border-radius:7px; padding:5px 8px; font-size:12.5px}
+.disc-row input{width:78px; text-align:right}
+.pay-modes{display:grid; grid-template-columns:repeat(4,1fr); gap:6px; margin:10px 0}
+.pm{border:1px solid var(--line); background:#fff; border-radius:7px; padding:6px 4px; font-size:11.5px; font-weight:700; color:var(--sub)}
+.pm.on{border-color:var(--blue); background:var(--blue-soft); color:var(--blue-deep)}
+.paid-row{display:flex; gap:8px; align-items:center; margin-bottom:10px}
+.paid-row label{font-size:12px; font-weight:600; color:var(--sub); flex:1}
+.paid-row input{width:110px; border:1px solid var(--line); border-radius:7px; padding:6px 9px; text-align:right; font-weight:600}
+
+/* ---------- Modal ---------- */
+#modal-root{position:fixed; inset:0; z-index:100; display:none}
+#modal-root.on{display:flex; align-items:flex-start; justify-content:center; padding:5vh 16px; overflow-y:auto}
+.scrim{position:fixed; inset:0; background:rgba(11,24,48,.55); backdrop-filter:blur(2px)}
+.modal{
+  position:relative; background:#fff; border-radius:14px; width:100%; max-width:520px;
+  box-shadow:0 30px 80px rgba(0,0,0,.35); animation:pop .16s ease-out;
+}
+@keyframes pop{from{transform:translateY(8px); opacity:0}}
+@media (prefers-reduced-motion: reduce){ .modal{animation:none} }
+.modal.wide{max-width:760px}
+.modal-h{display:flex; align-items:center; padding:15px 20px; border-bottom:1px solid var(--line)}
+.modal-h h3{font-size:15.5px; font-weight:700}
+.modal-h .x{margin-left:auto; border:none; background:none; font-size:20px; color:var(--faint); line-height:1}
+.modal-h .x:hover{color:var(--ink)}
+.modal-b{padding:20px}
+.modal-f{display:flex; gap:10px; justify-content:flex-end; padding:14px 20px; border-top:1px solid var(--line); background:#FAFBFA; border-radius:0 0 14px 14px}
+
+/* ---------- Invoice preview (modal + print) ---------- */
+.inv{font-size:12.5px; color:#111}
+.inv-top{display:flex; justify-content:space-between; gap:16px; padding-bottom:12px; border-bottom:2px solid var(--navy)}
+.inv-top .shop .nm{font-family:var(--font-display); font-weight:800; font-size:19px}
+.inv-top .shop .nm span{color:var(--blue)}
+.inv-top .shop div{color:#444; font-size:11.5px}
+.inv-top .meta{text-align:right; font-size:11.5px; color:#444}
+.inv-top .meta .no{font-family:var(--font-mono); font-weight:600; font-size:13px; color:#000}
+.inv-title{font-family:var(--font-mono); font-size:10px; letter-spacing:.28em; color:var(--sub); text-transform:uppercase; text-align:center; margin:10px 0 8px}
+.inv-cust{display:flex; justify-content:space-between; gap:16px; font-size:11.5px; margin-bottom:10px}
+.inv-cust b{font-size:12.5px}
+table.inv-t{width:100%; border-collapse:collapse; font-size:11.5px; margin-bottom:10px}
+.inv-t th{border-top:1px solid #000; border-bottom:1px solid #000; padding:5px 6px; text-align:left; font-size:10px; text-transform:uppercase; letter-spacing:.05em}
+.inv-t td{padding:5px 6px; border-bottom:1px solid #E5E5E5}
+.inv-t .r{text-align:right}
+.inv-sum{display:flex; justify-content:space-between; gap:20px}
+.inv-gst{font-size:10.5px; flex:1}
+.inv-gst table{border-collapse:collapse; width:100%; max-width:280px}
+.inv-gst th,.inv-gst td{border:1px solid #CCC; padding:3px 6px; text-align:right}
+.inv-gst th{background:#F2F2F2; font-size:9.5px}
+.inv-tot{min-width:210px; font-size:12px}
+.inv-tot .row{display:flex; justify-content:space-between; padding:2px 0}
+.inv-tot .g{font-family:var(--font-display); font-weight:800; font-size:16px; border-top:2px solid #000; margin-top:4px; padding-top:5px}
+.inv-foot{display:flex; justify-content:space-between; align-items:flex-end; gap:16px; margin-top:14px; padding-top:10px; border-top:1px dashed #AAA}
+.inv-foot .terms{font-size:10px; color:#555; max-width:300px}
+.inv-foot .qr{text-align:center; font-size:10px; color:#333}
+.inv-foot .qr .qrbox{width:92px; height:92px; margin:0 auto 4px; display:flex; align-items:center; justify-content:center; border:1px solid #DDD; background:#fff}
+.inv-foot .qr .qrbox img, .inv-foot .qr .qrbox canvas{width:88px !important; height:88px !important}
+.inv-paidtag{font-family:var(--font-mono); font-size:10px; letter-spacing:.2em; padding:3px 10px; border:1.5px solid; border-radius:4px; display:inline-block; transform:rotate(-3deg)}
+
+#print-root{display:none}
+@media print{
+  body{background:#fff}
+  #app,#login,#modal-root{display:none !important}
+  #print-root{display:block; padding:10mm}
+  .inv{font-size:12px}
+}
+
+/* ---------- Charts & misc ---------- */
+.barchart .bar{fill:var(--blue)}
+.barchart .bar:hover{fill:var(--blue-deep)}
+.barchart text{font-family:var(--font-mono); font-size:9px; fill:var(--sub)}
+.hbar{display:flex; align-items:center; gap:10px; margin-bottom:9px}
+.hbar .lbl{width:170px; font-size:12px; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+.hbar .trk{flex:1; height:14px; background:#EEF1EE; border-radius:4px; overflow:hidden}
+.hbar .fill{height:100%; background:linear-gradient(90deg, var(--blue), #4A74E8); border-radius:4px}
+.hbar .val{width:84px; text-align:right; font-size:11.5px; font-weight:600; color:var(--sub)}
+.alert-line{display:flex; align-items:center; gap:10px; padding:8px 0; border-bottom:1px solid #F0F2F0; font-size:13px}
+.alert-line:last-child{border-bottom:none}
+.alert-line .dot{width:8px; height:8px; border-radius:50%; flex:none}
+.toast-wrap{position:fixed; bottom:20px; right:20px; z-index:200; display:flex; flex-direction:column; gap:8px}
+.toast{
+  background:var(--navy); color:#fff; border-radius:9px; padding:11px 16px; font-size:13px;
+  box-shadow:0 10px 30px rgba(0,0,0,.3); display:flex; gap:9px; align-items:center;
+  animation:pop .18s ease-out;
+}
+.toast.err{background:var(--red)}
+.toast .tick{color:var(--amber); font-weight:800}
+.kbd-hint{font-size:11.5px; color:var(--faint); margin-top:8px}
+.kbd-hint kbd{font-family:var(--font-mono); background:#EEF1EE; border:1px solid var(--line); border-bottom-width:2px; border-radius:4px; padding:1px 5px; font-size:10.5px}
+.section-note{font-size:12px; color:var(--sub); margin-bottom:12px}
+a.link{color:var(--blue); font-weight:600; text-decoration:none}
+a.link:hover{text-decoration:underline}
+.mt{margin-top:16px}
+.mb{margin-bottom:16px}
+
+@media (max-width:1100px){
+  .pos{grid-template-columns:1fr}
+  .bill-panel{position:static}
+  .g4{grid-template-columns:repeat(2,1fr)}
+  .g3{grid-template-columns:repeat(2,1fr)}
+  .g2-1,.g2{grid-template-columns:1fr}
+}
+@media (max-width:820px){
+  #app.on{grid-template-columns:1fr}
+  #side{position:fixed; left:0; top:0; bottom:0; width:220px; z-index:60; transform:translateX(-100%); transition:transform .18s}
+  #side.open{transform:none}
+  #menu-btn{display:inline-flex}
+  #main{padding:16px 14px 60px}
+  #top{padding:10px 14px}
+  .g4{grid-template-columns:1fr 1fr}
+}
+#menu-btn{display:none; border:1px solid var(--line); background:#fff; border-radius:8px; padding:7px 9px}
+</style>
+</head>
+<body>
+
+<!-- ============ LOGIN ============ -->
+<div id="login">
+  <div class="login-card">
+    <div class="brandmark">
+      <svg class="fanlogo" viewBox="0 0 44 44" aria-hidden="true">
+        <circle cx="22" cy="22" r="21" fill="#0B1830"/>
+        <g class="blades" fill="#F5A623">
+          <path d="M22 22 C14 16, 13 9, 20 6 C24 10, 24 17, 22 22 Z"/>
+          <path d="M22 22 C30 20, 36 23, 35 30 C29 31, 24 27, 22 22 Z"/>
+          <path d="M22 22 C22 30, 17 35, 11 32 C11 26, 17 23, 22 22 Z"/>
+        </g>
+        <circle cx="22" cy="22" r="4" fill="#1849C6" stroke="#fff" stroke-width="1.5"/>
+      </svg>
+      <div class="brand-name">STC <span>Connect</span></div>
+    </div>
+    <div class="brand-tag">Fans · Coolers · Mixer Grinders</div>
+    <h1>Sign in to the counter</h1>
+    <div class="field">
+      <label for="lg-user">Username</label>
+      <input id="lg-user" autocomplete="username" placeholder="e.g. admin">
+    </div>
+    <div class="field">
+      <label for="lg-pass">Password</label>
+      <input id="lg-pass" type="password" autocomplete="current-password" placeholder="••••••••">
+    </div>
+    <button class="btn primary wide lg" onclick="doLogin()">Sign in</button>
+    <div class="login-err" id="login-err">Wrong username or password. Try one of the demo accounts below.</div>
+    <div class="demo-creds">
+      <b>Demo accounts</b><br>
+      <span class="mono">admin / admin123</span> — full access<br>
+      <span class="mono">manager / manager123</span> — no user &amp; settings control<br>
+      <span class="mono">cashier / cashier123</span> — billing counter only
+    </div>
+  </div>
+</div>
+
+<!-- ============ APP ============ -->
+<div id="app">
+  <aside id="side">
+    <div class="side-brand">
+      <svg class="fanlogo" viewBox="0 0 44 44" aria-hidden="true">
+        <circle cx="22" cy="22" r="21" fill="#122448"/>
+        <g class="blades" fill="#F5A623">
+          <path d="M22 22 C14 16, 13 9, 20 6 C24 10, 24 17, 22 22 Z"/>
+          <path d="M22 22 C30 20, 36 23, 35 30 C29 31, 24 27, 22 22 Z"/>
+          <path d="M22 22 C22 30, 17 35, 11 32 C11 26, 17 23, 22 22 Z"/>
+        </g>
+        <circle cx="22" cy="22" r="4" fill="#1849C6" stroke="#fff" stroke-width="1.5"/>
+      </svg>
+      <div class="t">STC Connect<small>RETAIL POS v1.0</small></div>
+    </div>
+    <nav id="nav"></nav>
+    <div class="side-foot">
+      <div class="who" id="foot-name"></div>
+      <div class="role" id="foot-role"></div>
+      <button onclick="doLogout()">Sign out</button>
+    </div>
+  </aside>
+
+  <div id="main-wrap">
+    <header id="top">
+      <button id="menu-btn" onclick="toggleSide()" aria-label="Menu">☰</button>
+      <h2 id="top-title">Dashboard</h2>
+      <div class="spacer"></div>
+      <div class="store-pick">
+        <span>Selling from</span>
+        <select id="store-sel" onchange="setStore(this.value)"></select>
+      </div>
+      <div class="date" id="top-date"></div>
+    </header>
+    <main id="main"></main>
+  </div>
+</div>
+
+<div id="modal-root"></div>
+<div id="print-root"></div>
+<div class="toast-wrap" id="toasts"></div>
+
+<script>
+/* ============================================================
+   STC Connect — Retail POS & Billing
+   Front-end demo build. The DB object below mirrors the MongoDB
+   collections (Users, Products, Customers, Suppliers, Bills,
+   Purchases, Payments, InventoryLogs) so it can be swapped for
+   a Node/Express + MongoDB API later.
+   ============================================================ */
+
+'use strict';
+
+/* ---------- tiny helpers ---------- */
+const $ = s => document.querySelector(s);
+const $$ = s => Array.from(document.querySelectorAll(s));
+const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const fmt = n => '₹' + (Math.round((+n + Number.EPSILON) * 100) / 100).toLocaleString('en-IN', {minimumFractionDigits: (Math.abs(n) % 1 > 0.004 ? 2 : 0), maximumFractionDigits: 2});
+const fmt2 = n => (Math.round((+n + Number.EPSILON) * 100) / 100).toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+const DAY = 86400000;
+const dstr = ts => new Date(ts).toLocaleDateString('en-IN', {day: '2-digit', month: 'short', year: 'numeric'});
+const tstr = ts => new Date(ts).toLocaleTimeString('en-IN', {hour: '2-digit', minute: '2-digit'});
+const dayKey = ts => { const d = new Date(ts); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); };
+const startOfDay = ts => { const d = new Date(ts); d.setHours(0, 0, 0, 0); return d.getTime(); };
+const startOfMonth = ts => { const d = new Date(ts); d.setDate(1); d.setHours(0, 0, 0, 0); return d.getTime(); };
+const clamp = (n, a, b) => Math.max(a, Math.min(b, n));
+const sum = (arr, f) => arr.reduce((t, x) => t + f(x), 0);
+
+/* deterministic PRNG so the demo numbers are stable per load */
+function mulberry32(a) { return function() { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+const rng = mulberry32(20260719);
+const pick = arr => arr[Math.floor(rng() * arr.length)];
+const rint = (a, b) => a + Math.floor(rng() * (b - a + 1));
+
+/* ---------- app state ---------- */
+const STORES = [{id: 's1', name: 'Showroom'}, {id: 's2', name: 'Godown'}];
+const CATS = ['Ceiling Fan', 'Table Fan', 'Pedestal Fan', 'Wall Fan', 'Exhaust Fan', 'Air Cooler', 'Mixer Grinder', 'Kitchen Appliance', 'Home Appliance', 'Spares'];
+const ROLES = ['admin', 'manager', 'cashier'];
+
+const S = {
+  user: null,
+  view: 'dashboard',
+  store: 's1',
+  cart: [],            // {pid, qty}
+  custId: '',
+  discType: 'pct',
+  discVal: 0,
+  payMode: 'Cash',
+  paid: null,          // null = auto full
+  search: { products: '', pos: '', customers: '', suppliers: '' },
+  prodCat: 'all',
+  custFilter: 'all',
+  reportPeriod: 'month',
+  lastBillId: null
+};
+
+let DB = null;
+
+/* ---------- database (mirrors MongoDB collections) ---------- */
+function freshDB() {
+  const db = {
+    settings: {
+      shopName: 'STC Connect',
+      tagline: 'Fans · Coolers · Mixer Grinders · Home Appliances',
+      address: 'Shop 4, Ganesh Complex, Pimpri-Chinchwad, Pune 411018',
+      phone: '98220 00000',
+      gstin: '27ABCDE1234F1Z5',
+      upi: 'stcconnect@upi',
+      invPrefix: 'STC',
+      terms: 'Goods once sold will only be exchanged against manufacturing defects as per brand warranty. Please keep this invoice for warranty claims. E. & O. E.',
+      minStockDefault: 5
+    },
+    seq: { id: 1, bill: 1, po: 1, pay: 1, log: 1 },
+    users: [], products: [], customers: [], suppliers: [],
+    bills: [], purchases: [], payments: [], logs: []
+  };
+  return db;
+}
+const nid = () => 'x' + (DB.seq.id++);
+
+function seed() {
+  DB = freshDB();
+
+  DB.users = [
+    { id: nid(), name: 'Sanjay Chaudhari', username: 'admin', password: 'admin123', role: 'admin', active: true },
+    { id: nid(), name: 'Rohit Pawar', username: 'manager', password: 'manager123', role: 'manager', active: true },
+    { id: nid(), name: 'Neha Kulkarni', username: 'cashier', password: 'cashier123', role: 'cashier', active: true }
+  ];
+
+  const P = (sku, name, cat, hsn, pp, sp, gst, s1, s2, min) =>
+    ({ id: nid(), sku, name, cat, hsn, pp, sp, gst, stk: { s1, s2 }, min });
+  DB.products = [
+    P('FAN-CL-1200', 'AeroBreeze Ceiling Fan 1200mm', 'Ceiling Fan', '8414', 1150, 1599, 18, 22, 40, 8),
+    P('FAN-CL-DECO', 'AeroBreeze Deco Ceiling Fan 1200mm', 'Ceiling Fan', '8414', 1480, 2099, 18, 12, 18, 6),
+    P('FAN-CL-BLDC', 'EcoSpin BLDC Ceiling Fan 1200mm (Remote)', 'Ceiling Fan', '8414', 2350, 3299, 18, 8, 10, 5),
+    P('FAN-TB-400', 'BreezeMate Table Fan 400mm', 'Table Fan', '8414', 920, 1349, 18, 14, 12, 6),
+    P('FAN-PD-450', 'TowerAir Pedestal Fan 450mm', 'Pedestal Fan', '8414', 1680, 2349, 18, 9, 10, 5),
+    P('FAN-WL-400', 'WallJet Wall Fan 400mm', 'Wall Fan', '8414', 1120, 1599, 18, 7, 8, 4),
+    P('FAN-EX-250', 'VentPro Exhaust Fan 250mm', 'Exhaust Fan', '8414', 640, 949, 18, 16, 20, 6),
+    P('CLR-DS-85', 'HimShakti Desert Cooler 85L', 'Air Cooler', '8479', 6250, 8499, 18, 5, 6, 3),
+    P('CLR-PR-40', 'ChillMate Personal Cooler 40L', 'Air Cooler', '8479', 3950, 5399, 18, 6, 8, 3),
+    P('CLR-PMP-18', 'Cooler Pump 18W (Submersible)', 'Spares', '8413', 240, 399, 18, 11, 24, 8),
+    P('CLR-PAD-HC', 'Honeycomb Cooling Pad Set', 'Spares', '8479', 310, 499, 18, 4, 15, 6),
+    P('MXG-750-3J', 'RasoiKing Mixer Grinder 750W (3 Jar)', 'Mixer Grinder', '8509', 2380, 3299, 18, 10, 12, 5),
+    P('MXG-500-3J', 'RasoiKing Mixer Grinder 500W (3 Jar)', 'Mixer Grinder', '8509', 1720, 2449, 18, 13, 14, 5),
+    P('JMG-500-2J', 'FruitPress Juicer Mixer 500W', 'Mixer Grinder', '8509', 2610, 3599, 18, 6, 6, 3),
+    P('IND-1800', 'HeatWave Induction Cooktop 1800W', 'Kitchen Appliance', '8516', 1760, 2499, 18, 8, 9, 4),
+    P('KTL-15L', 'QuickBoil Electric Kettle 1.5L', 'Kitchen Appliance', '8516', 615, 899, 18, 12, 15, 6),
+    P('IRN-DRY-1K', 'PressRight Dry Iron 1000W', 'Home Appliance', '8516', 470, 699, 18, 3, 10, 6),
+    P('ROD-1500', 'Immersion Water Heater Rod 1500W', 'Home Appliance', '8516', 315, 499, 18, 2, 0, 6)
+  ];
+
+  DB.customers = [
+    { id: nid(), name: 'Walk-in Customer', phone: '', addr: '', gstin: '', balance: 0, walkin: true },
+    { id: nid(), name: 'Prakash Jadhav', phone: '9822012345', addr: 'Nigdi, Pune', gstin: '', balance: 0 },
+    { id: nid(), name: 'Sunita More', phone: '9890054321', addr: 'Chinchwad, Pune', gstin: '', balance: 0 },
+    { id: nid(), name: 'Hotel Annapurna (Kitchen)', phone: '9765011122', addr: 'Pimpri, Pune', gstin: '27AAHCA9999A1Z2', balance: 0 },
+    { id: nid(), name: 'Deepak Electricals (Resale)', phone: '9922033445', addr: 'Bhosari MIDC', gstin: '27AABCD8888B1Z7', balance: 0 },
+    { id: nid(), name: 'Kavita Shinde', phone: '9850067890', addr: 'Akurdi, Pune', gstin: '', balance: 0 }
+  ];
+
+  DB.suppliers = [
+    { id: nid(), name: 'Deccan Electricals Distributors', phone: '020-27455000', gstin: '27AACCD1111C1Z9', addr: 'Bhosari MIDC, Pune', balance: 0 },
+    { id: nid(), name: 'AirFlow Cooling Components', phone: '020-66004411', gstin: '27AAFCA2222D1Z3', addr: 'Chakan, Pune', balance: 0 },
+    { id: nid(), name: 'GharSansar Appliances C&F', phone: '022-40332211', gstin: '27AAGCG3333E1Z1', addr: 'Bhiwandi, Thane', balance: 0 }
+  ];
+
+  const now = Date.now();
+
+  /* opening purchase (stock-in) 20 days back */
+  const sup = DB.suppliers[0];
+  const poItems = DB.products.map(p => ({ pid: p.id, name: p.name, sku: p.sku, qty: p.stk.s1 + p.stk.s2, cost: p.pp }));
+  const poTotal = Math.round(sum(poItems, i => i.qty * i.cost) * 1.18);
+  DB.purchases.push({
+    id: nid(), no: 'PO-' + String(DB.seq.po++).padStart(3, '0'), date: now - 20 * DAY,
+    supplierId: sup.id, items: poItems, total: poTotal, paid: poTotal - 48000, due: 48000, note: 'Opening stock'
+  });
+  sup.balance += 48000;
+  DB.payments.push({ id: nid(), no: 'PAY-' + String(DB.seq.pay++).padStart(3, '0'), date: now - 19 * DAY, type: 'out', party: 'supplier', partyId: sup.id, amount: poTotal - 48000, mode: 'Bank', note: 'Against PO-001' });
+  DB.logs.push({ id: nid(), date: now - 20 * DAY, type: 'purchase', pid: null, name: 'Opening stock (all items)', qty: sum(poItems, i => i.qty), store: 's1/s2', by: 'admin', note: 'PO-001 · Deccan Electricals' });
+
+  /* generated sales history: last 14 days */
+  const cashiers = ['Neha Kulkarni', 'Rohit Pawar'];
+  const modes = ['Cash', 'UPI', 'UPI', 'Cash', 'Card'];
+  for (let d = 14; d >= 0; d--) {
+    const nBills = d === 0 ? 4 : rint(1, 4);
+    for (let b = 0; b < nBills; b++) {
+      const when = startOfDay(now - d * DAY) + rint(10, 19) * 3600000 + rint(0, 59) * 60000;
+      if (when > now) continue;
+      const cust = DB.customers[rint(0, DB.customers.length - 1)];
+      const nItems = rint(1, 3);
+      const items = []; const used = new Set();
+      for (let i = 0; i < nItems; i++) {
+        const p = pick(DB.products);
+        if (used.has(p.id)) continue; used.add(p.id);
+        const qty = p.sp > 4000 ? 1 : rint(1, 3);
+        items.push({ pid: p.id, sku: p.sku, name: p.name, hsn: p.hsn, qty, price: p.sp, pp: p.pp, gst: p.gst });
+      }
+      if (!items.length) continue;
+      const bill = computeBill(items, rng() < 0.25 ? { type: 'pct', val: 5 } : { type: 'pct', val: 0 });
+      const isCredit = !cust.walkin && rng() < 0.14;
+      const paid = isCredit ? Math.round(bill.total * pick([0, 0.5])) : bill.total;
+      const rec = {
+        id: nid(), no: 'STC-' + String(DB.seq.bill++).padStart(4, '0'), date: when,
+        customerId: cust.id, customer: cust.name, items,
+        sub: bill.sub, discount: bill.discount, taxable: bill.taxable, cgst: bill.cgst, sgst: bill.sgst,
+        roundOff: bill.roundOff, total: bill.total, paid, due: bill.total - paid,
+        mode: isCredit ? 'Credit' : pick(modes), store: 's1', by: pick(cashiers)
+      };
+      DB.bills.push(rec);
+      cust.balance += rec.due;
+      items.forEach(it => {
+        const p = DB.products.find(x => x.id === it.pid);
+        p.stk.s1 = Math.max(0, p.stk.s1 - it.qty);
+        DB.logs.push({ id: nid(), date: when, type: 'sale', pid: p.id, name: p.name, qty: -it.qty, store: 's1', by: rec.by, note: rec.no });
+      });
+      if (paid > 0) DB.payments.push({ id: nid(), no: 'PAY-' + String(DB.seq.pay++).padStart(3, '0'), date: when, type: 'in', party: 'customer', partyId: cust.id, amount: paid, mode: rec.mode === 'Credit' ? 'Cash' : rec.mode, note: 'Bill ' + rec.no });
+    }
+  }
+  /* one godown->showroom transfer log for flavour */
+  DB.logs.push({ id: nid(), date: now - 3 * DAY, type: 'transfer', pid: DB.products[0].id, name: DB.products[0].name, qty: 6, store: 'Godown → Showroom', by: 'manager', note: 'Weekend restock' });
+  DB.logs.sort((a, b) => b.date - a.date);
+  DB.bills.sort((a, b) => b.date - a.date);
+}
+
+/* ---------- GST bill maths (prices are GST-exclusive) ---------- */
+function computeBill(items, disc) {
+  const sub = sum(items, i => i.qty * i.price);
+  let discount = 0;
+  if (disc && disc.val > 0) discount = disc.type === 'pct' ? sub * clamp(disc.val, 0, 100) / 100 : clamp(disc.val, 0, sub);
+  discount = Math.round(discount * 100) / 100;
+  let taxable = 0, tax = 0;
+  const byRate = {};
+  items.forEach(i => {
+    const line = i.qty * i.price;
+    const lineTaxable = sub ? line - (line / sub) * discount : 0;
+    const lineTax = lineTaxable * i.gst / 100;
+    taxable += lineTaxable; tax += lineTax;
+    if (!byRate[i.gst]) byRate[i.gst] = { rate: i.gst, taxable: 0, tax: 0 };
+    byRate[i.gst].taxable += lineTaxable; byRate[i.gst].tax += lineTax;
+  });
+  const raw = taxable + tax;
+  const total = Math.round(raw);
+  return {
+    sub: Math.round(sub * 100) / 100,
+    discount,
+    taxable: Math.round(taxable * 100) / 100,
+    cgst: Math.round(tax / 2 * 100) / 100,
+    sgst: Math.round(tax / 2 * 100) / 100,
+    roundOff: Math.round((total - raw) * 100) / 100,
+    total,
+    byRate: Object.values(byRate).sort((a, b) => a.rate - b.rate)
+  };
+}
+
+/* ---------- auth ---------- */
+function doLogin() {
+  const u = $('#lg-user').value.trim(), p = $('#lg-pass').value;
+  const user = DB.users.find(x => x.username === u && x.password === p && x.active !== false);
+  if (!user) { $('#login-err').style.display = 'block'; return; }
+  S.user = user;
+  $('#login').style.display = 'none';
+  $('#app').classList.add('on');
+  $('#foot-name').textContent = user.name;
+  $('#foot-role').textContent = user.role;
+  buildNav();
+  go(user.role === 'cashier' ? 'pos' : 'dashboard');
+  toast('Signed in as ' + user.name);
+}
+function doLogout() {
+  S.user = null; S.cart = []; S.custId = '';
+  $('#app').classList.remove('on');
+  $('#login').style.display = 'flex';
+  $('#lg-pass').value = '';
+  $('#login-err').style.display = 'none';
+}
+
+/* ---------- navigation ---------- */
+const NAV = [
+  { id: 'dashboard', label: 'Dashboard', roles: ['admin', 'manager', 'cashier'], icon: 'M3 3h8v8H3zM13 3h8v5h-8zM13 10h8v11h-8zM3 13h8v8H3z' },
+  { id: 'pos', label: 'Billing (POS)', roles: ['admin', 'manager', 'cashier'], icon: 'M4 2h16v20l-2-1.5L16 22l-2-1.5L12 22l-2-1.5L8 22l-2-1.5L4 22zM8 7h8M8 11h8M8 15h5' },
+  { id: 'products', label: 'Products', roles: ['admin', 'manager'], icon: 'M12 2l9 5v10l-9 5-9-5V7zM12 2v10M3 7l9 5 9-5' },
+  { id: 'inventory', label: 'Inventory', roles: ['admin', 'manager'], icon: 'M3 8h18v13H3zM3 8l2-5h14l2 5M12 12v5M9.5 14.5h5' },
+  { id: 'customers', label: 'Customers', roles: ['admin', 'manager', 'cashier'], icon: 'M16 19v-1a4 4 0 00-8 0v1M12 11a3.5 3.5 0 100-7 3.5 3.5 0 000 7zM20 19v-1a4 4 0 00-2.5-3.7M16.5 4.3a3.5 3.5 0 010 6.6' },
+  { id: 'suppliers', label: 'Suppliers', roles: ['admin', 'manager'], icon: 'M2 6h13v11H2zM15 10h4l3 3v4h-7zM6.5 20a1.8 1.8 0 100-3.6 1.8 1.8 0 000 3.6zM17.5 20a1.8 1.8 0 100-3.6 1.8 1.8 0 000 3.6z' },
+  { id: 'reports', label: 'Reports', roles: ['admin', 'manager'], icon: 'M4 20V10M10 20V4M16 20v-8M22 20H2' },
+  { id: 'users', label: 'User Roles', roles: ['admin'], icon: 'M15 19v-1.5a3.5 3.5 0 00-7 0V19M11.5 11a3 3 0 100-6 3 3 0 000 6zM18 8v4M20 10h-4' },
+  { id: 'settings', label: 'Settings', roles: ['admin'], icon: 'M12 15a3 3 0 100-6 3 3 0 000 6zM19 12a7 7 0 00-.1-1.2l2-1.5-2-3.4-2.3 1a7 7 0 00-2-1.2L14 3h-4l-.5 2.7a7 7 0 00-2 1.2l-2.4-1-2 3.4 2 1.5A7 7 0 005 12a7 7 0 00.1 1.2l-2 1.5 2 3.4 2.3-1a7 7 0 002 1.2L10 21h4l.5-2.7a7 7 0 002-1.2l2.4 1 2-3.4-2-1.5c.06-.4.1-.8.1-1.2z' }
+];
+const TITLES = { dashboard: 'Dashboard', pos: 'Billing (POS)', products: 'Products', inventory: 'Inventory', customers: 'Customers', suppliers: 'Suppliers', reports: 'Reports', users: 'User Roles', settings: 'Settings' };
+
+function navIcon(d) { return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="' + d + '"/></svg>'; }
+
+function buildNav() {
+  $('#nav').innerHTML = NAV.filter(n => n.roles.includes(S.user.role))
+    .map(n => '<button class="nav-btn" id="nav-' + n.id + '" onclick="go(\'' + n.id + '\')">' + navIcon(n.icon) + '<span>' + n.label + '</span></button>').join('');
+  const sel = $('#store-sel');
+  sel.innerHTML = STORES.map(s => '<option value="' + s.id + '"' + (s.id === S.store ? ' selected' : '') + '>' + s.name + '</option>').join('');
+}
+function setStore(id) { S.store = id; render(); }
+function storeName(id) { const s = STORES.find(x => x.id === id); return s ? s.name : id; }
+function toggleSide() { $('#side').classList.toggle('open'); }
+
+function go(view) {
+  const item = NAV.find(n => n.id === view);
+  if (!item || !item.roles.includes(S.user.role)) return;
+  S.view = view;
+  $$('#nav .nav-btn').forEach(b => b.classList.remove('on'));
+  const btn = $('#nav-' + view); if (btn) btn.classList.add('on');
+  $('#top-title').textContent = TITLES[view];
+  $('#side').classList.remove('open');
+  render();
+}
+function render() {
+  const fn = VIEWS[S.view];
+  $('#main').innerHTML = fn ? fn() : '';
+  if (AFTER[S.view]) AFTER[S.view]();
+}
+
+/* ---------- toasts & modals ---------- */
+function toast(msg, err) {
+  const el = document.createElement('div');
+  el.className = 'toast' + (err ? ' err' : '');
+  el.innerHTML = '<span class="tick">' + (err ? '!' : '✓') + '</span><span>' + esc(msg) + '</span>';
+  $('#toasts').appendChild(el);
+  setTimeout(() => { el.style.opacity = '0'; el.style.transition = 'opacity .3s'; setTimeout(() => el.remove(), 320); }, 2600);
+}
+function openModal(html, wide) {
+  $('#modal-root').innerHTML = '<div class="scrim" onclick="closeModal()"></div><div class="modal' + (wide ? ' wide' : '') + '" role="dialog" aria-modal="true">' + html + '</div>';
+  $('#modal-root').classList.add('on');
+}
+function closeModal() { $('#modal-root').classList.remove('on'); $('#modal-root').innerHTML = ''; }
+function modalShell(title, body, foot) {
+  return '<div class="modal-h"><h3>' + esc(title) + '</h3><button class="x" onclick="closeModal()" aria-label="Close">×</button></div>' +
+    '<div class="modal-b">' + body + '</div>' +
+    (foot ? '<div class="modal-f">' + foot + '</div>' : '');
+}
+
+const VIEWS = {}; const AFTER = {};
+
+/* ============================================================
+   DASHBOARD
+   ============================================================ */
+VIEWS.dashboard = function() {
+  const now = Date.now(), sod = startOfDay(now);
+  const todays = DB.bills.filter(b => b.date >= sod);
+  const monthBills = DB.bills.filter(b => b.date >= startOfMonth(now));
+  const todaySales = sum(todays, b => b.total);
+  const itemsToday = sum(todays, b => sum(b.items, i => i.qty));
+  const dues = sum(DB.customers, c => Math.max(0, c.balance));
+  const low = DB.products.filter(p => (p.stk.s1 + p.stk.s2) <= p.min);
+
+  /* 14-day trend */
+  const days = [];
+  for (let d = 13; d >= 0; d--) {
+    const k = dayKey(now - d * DAY);
+    days.push({ k, lbl: new Date(now - d * DAY).toLocaleDateString('en-IN', { day: '2-digit' }), v: sum(DB.bills.filter(b => dayKey(b.date) === k), b => b.total) });
+  }
+
+  /* top products this month */
+  const byProd = {};
+  monthBills.forEach(b => b.items.forEach(i => {
+    if (!byProd[i.pid]) byProd[i.pid] = { name: i.name, qty: 0, rev: 0 };
+    byProd[i.pid].qty += i.qty; byProd[i.pid].rev += i.qty * i.price;
+  }));
+  const top = Object.values(byProd).sort((a, b) => b.rev - a.rev).slice(0, 5);
+  const maxRev = top.length ? top[0].rev : 1;
+
+  const canSeeMoney = S.user.role !== 'cashier';
+  return '' +
+  '<div class="grid g4 mb">' +
+    '<div class="card stat blue"><div class="k">Today\u2019s sales</div><div class="v num">' + fmt(todaySales) + '</div><div class="d">' + todays.length + ' bills · ' + itemsToday + ' items</div></div>' +
+    '<div class="card stat green"><div class="k">This month</div><div class="v num">' + fmt(sum(monthBills, b => b.total)) + '</div><div class="d">' + monthBills.length + ' bills</div></div>' +
+    '<div class="card stat amber"><div class="k">Outstanding (udhar)</div><div class="v num">' + fmt(dues) + '</div><div class="d">' + DB.customers.filter(c => c.balance > 0).length + ' customers pending</div></div>' +
+    '<div class="card stat ' + (low.length ? 'red' : 'green') + '"><div class="k">Low stock alerts</div><div class="v num">' + low.length + '</div><div class="d">items at or below reorder level</div></div>' +
+  '</div>' +
+  '<div class="grid g2-1 mb">' +
+    '<div class="card"><div class="card-h"><h3>Sales — last 14 days</h3><div class="r"><span class="chip">₹ per day</span></div></div><div class="card-b">' + barChart(days) + '</div></div>' +
+    '<div class="card"><div class="card-h"><h3>Low stock</h3><div class="r">' + (S.user.role !== 'cashier' ? '<button class="btn sm" onclick="go(\'inventory\')">Open inventory</button>' : '') + '</div></div><div class="card-b">' +
+      (low.length ? low.slice(0, 6).map(p =>
+        '<div class="alert-line"><span class="dot" style="background:' + ((p.stk.s1 + p.stk.s2) === 0 ? 'var(--red)' : 'var(--amber)') + '"></span>' +
+        '<span style="flex:1">' + esc(p.name) + '</span><b class="num">' + (p.stk.s1 + p.stk.s2) + ' left</b></div>').join('')
+      : '<div class="empty">All items are above reorder level.</div>') +
+    '</div></div>' +
+  '</div>' +
+  '<div class="grid g2-1">' +
+    '<div class="card"><div class="card-h"><h3>Recent bills</h3><div class="r"><button class="btn sm primary" onclick="go(\'pos\')">+ New sale</button></div></div>' +
+      '<div class="table-wrap"><table class="tbl"><thead><tr><th>Bill</th><th>Customer</th><th>Time</th><th class="r">Amount</th><th>Status</th></tr></thead><tbody>' +
+      DB.bills.slice(0, 7).map(b =>
+        '<tr class="click" onclick="showInvoice(\'' + b.id + '\')"><td class="mono">' + esc(b.no) + '</td><td>' + esc(b.customer) + '</td><td>' + dstr(b.date) + ' ' + tstr(b.date) + '</td>' +
+        '<td class="r num"><b>' + fmt(b.total) + '</b></td><td>' + (b.due > 0 ? '<span class="tag red">Due ' + fmt(b.due) + '</span>' : '<span class="tag green">Paid</span>') + '</td></tr>').join('') +
+      '</tbody></table></div></div>' +
+    '<div class="card"><div class="card-h"><h3>Top sellers — this month</h3></div><div class="card-b">' +
+      (top.length ? top.map(t =>
+        '<div class="hbar"><div class="lbl" title="' + esc(t.name) + '">' + esc(t.name) + '</div><div class="trk"><div class="fill" style="width:' + Math.max(4, Math.round(t.rev / maxRev * 100)) + '%"></div></div><div class="val num">' + (canSeeMoney ? fmt(t.rev) : t.qty + ' pcs') + '</div></div>').join('')
+      : '<div class="empty">No sales yet this month.</div>') +
+    '</div></div>' +
+  '</div>';
+};
+
+function barChart(days) {
+  const W = 640, H = 170, pad = 24, bw = (W - pad * 2) / days.length;
+  const max = Math.max(1, ...days.map(d => d.v));
+  let bars = '';
+  days.forEach((d, i) => {
+    const h = Math.round((H - 46) * d.v / max);
+    const x = pad + i * bw + 3, y = H - 26 - h;
+    bars += '<rect class="bar" x="' + x + '" y="' + y + '" width="' + (bw - 6) + '" height="' + Math.max(h, 2) + '" rx="3"><title>' + d.lbl + ': ' + fmt(d.v) + '</title></rect>';
+    bars += '<text x="' + (x + (bw - 6) / 2) + '" y="' + (H - 10) + '" text-anchor="middle">' + d.lbl + '</text>';
+    if (d.v > 0 && h > 18) bars += '<text x="' + (x + (bw - 6) / 2) + '" y="' + (y - 4) + '" text-anchor="middle" style="font-size:8.5px">' + Math.round(d.v / 1000) + 'k</text>';
+  });
+  return '<svg class="barchart" viewBox="0 0 ' + W + ' ' + H + '" style="width:100%; height:auto" role="img" aria-label="Daily sales chart">' + bars + '</svg>';
+}
+
+/* ============================================================
+   PRODUCTS
+   ============================================================ */
+VIEWS.products = function() {
+  const q = S.search.products.toLowerCase();
+  let list = DB.products.filter(p => !q || p.name.toLowerCase().includes(q) || p.sku.toLowerCase().includes(q));
+  if (S.prodCat !== 'all') list = list.filter(p => p.cat === S.prodCat);
+  const cats = ['all', ...new Set(DB.products.map(p => p.cat))];
+  return '' +
+  '<div class="page-h"><h2>Products</h2><span class="sub">' + DB.products.length + ' SKUs · prices excl. GST</span>' +
+    '<div class="r">' +
+      '<div class="search">' + navIcon('M11 19a8 8 0 100-16 8 8 0 000 16zM21 21l-4.3-4.3') + '<input placeholder="Search name or SKU…" value="' + esc(S.search.products) + '" oninput="S.search.products=this.value; render()"></div>' +
+      '<button class="btn primary" onclick="productForm()">+ Add product</button>' +
+    '</div></div>' +
+  '<div class="filters mb">' + cats.map(c => '<button class="fchip' + (S.prodCat === c ? ' on' : '') + '" onclick="S.prodCat=\'' + c + '\'; render()">' + (c === 'all' ? 'All' : esc(c)) + '</button>').join('') + '</div>' +
+  '<div class="card"><div class="table-wrap"><table class="tbl"><thead><tr>' +
+    '<th>SKU</th><th>Product</th><th>Category</th><th class="r">Purchase ₹</th><th class="r">Selling ₹</th><th class="c">GST %</th><th class="c">Showroom</th><th class="c">Godown</th><th>Status</th><th></th>' +
+  '</tr></thead><tbody>' +
+  (list.length ? list.map(p => {
+    const tot = p.stk.s1 + p.stk.s2;
+    const st = tot === 0 ? '<span class="tag red">Out of stock</span>' : tot <= p.min ? '<span class="tag amber">Low · reorder</span>' : '<span class="tag green">In stock</span>';
+    return '<tr><td><span class="chip">' + esc(p.sku) + '</span></td><td><b>' + esc(p.name) + '</b><div style="font-size:11px;color:var(--faint)">HSN ' + esc(p.hsn) + '</div></td>' +
+      '<td>' + esc(p.cat) + '</td><td class="r num">' + fmt(p.pp) + '</td><td class="r num"><b>' + fmt(p.sp) + '</b></td><td class="c num">' + p.gst + '%</td>' +
+      '<td class="c num">' + p.stk.s1 + '</td><td class="c num">' + p.stk.s2 + '</td><td>' + st + '</td>' +
+      '<td class="r" style="white-space:nowrap"><button class="btn sm ghost" onclick="productForm(\'' + p.id + '\')">Edit</button> <button class="btn sm ghost danger" onclick="deleteProduct(\'' + p.id + '\')">Delete</button></td></tr>';
+  }).join('') : '<tr><td colspan="10"><div class="empty">No products match — clear the search or add a new product.</div></td></tr>') +
+  '</tbody></table></div></div>';
+};
+
+function productForm(id) {
+  const p = id ? DB.products.find(x => x.id === id) : null;
+  const v = k => p ? esc(p[k]) : '';
+  const body =
+    '<div class="frow"><div class="field"><label>Product name</label><input id="pf-name" value="' + v('name') + '" placeholder="e.g. AeroBreeze Ceiling Fan 1200mm"></div></div>' +
+    '<div class="frow">' +
+      '<div class="field"><label>SKU / barcode</label><input id="pf-sku" class="mono" value="' + v('sku') + '" placeholder="FAN-CL-1200"></div>' +
+      '<div class="field"><label>HSN code</label><input id="pf-hsn" class="mono" value="' + v('hsn') + '" placeholder="8414"></div>' +
+      '<div class="field"><label>Category</label><select id="pf-cat">' + CATS.map(c => '<option' + (p && p.cat === c ? ' selected' : '') + '>' + c + '</option>').join('') + '</select></div>' +
+    '</div>' +
+    '<div class="frow">' +
+      '<div class="field"><label>Purchase price ₹</label><input id="pf-pp" type="number" min="0" value="' + (p ? p.pp : '') + '"></div>' +
+      '<div class="field"><label>Selling price ₹ (excl. GST)</label><input id="pf-sp" type="number" min="0" value="' + (p ? p.sp : '') + '"></div>' +
+      '<div class="field"><label>GST %</label><select id="pf-gst">' + [0, 5, 12, 18, 28].map(g => '<option' + ((p ? p.gst : 18) === g ? ' selected' : '') + '>' + g + '</option>').join('') + '</select></div>' +
+    '</div>' +
+    '<div class="frow">' +
+      '<div class="field"><label>Stock — Showroom</label><input id="pf-s1" type="number" min="0" value="' + (p ? p.stk.s1 : 0) + '"></div>' +
+      '<div class="field"><label>Stock — Godown</label><input id="pf-s2" type="number" min="0" value="' + (p ? p.stk.s2 : 0) + '"></div>' +
+      '<div class="field"><label>Reorder level</label><input id="pf-min" type="number" min="0" value="' + (p ? p.min : DB.settings.minStockDefault) + '"></div>' +
+    '</div>';
+  openModal(modalShell(p ? 'Edit product' : 'Add product', body,
+    '<button class="btn" onclick="closeModal()">Cancel</button><button class="btn primary" onclick="saveProduct(' + (p ? '\'' + p.id + '\'' : 'null') + ')">' + (p ? 'Save changes' : 'Add product') + '</button>'), true);
+}
+function saveProduct(id) {
+  const name = $('#pf-name').value.trim(), sku = $('#pf-sku').value.trim().toUpperCase();
+  if (!name || !sku) { toast('Name and SKU are required', true); return; }
+  const dup = DB.products.find(p => p.sku === sku && p.id !== id);
+  if (dup) { toast('SKU ' + sku + ' already exists on ' + dup.name, true); return; }
+  const data = {
+    name, sku, hsn: $('#pf-hsn').value.trim() || '—', cat: $('#pf-cat').value,
+    pp: +$('#pf-pp').value || 0, sp: +$('#pf-sp').value || 0, gst: +$('#pf-gst').value,
+    stk: { s1: Math.max(0, Math.floor(+$('#pf-s1').value || 0)), s2: Math.max(0, Math.floor(+$('#pf-s2').value || 0)) },
+    min: Math.max(0, Math.floor(+$('#pf-min').value || 0))
+  };
+  if (id) { Object.assign(DB.products.find(p => p.id === id), data); toast('Product updated'); }
+  else {
+    DB.products.push(Object.assign({ id: nid() }, data));
+    DB.logs.unshift({ id: nid(), date: Date.now(), type: 'in', pid: null, name: name, qty: data.stk.s1 + data.stk.s2, store: 'Opening', by: S.user.username, note: 'New product added' });
+    toast('Product added');
+  }
+  closeModal(); render();
+}
+function deleteProduct(id) {
+  const p = DB.products.find(x => x.id === id);
+  openModal(modalShell('Delete product', '<p>Remove <b>' + esc(p.name) + '</b> from the catalogue? Past bills keep their records; the item just stops appearing in POS and stock.</p>',
+    '<button class="btn" onclick="closeModal()">Cancel</button><button class="btn danger" onclick="(function(){ DB.products = DB.products.filter(x => x.id !== \'' + id + '\'); closeModal(); render(); toast(\'Product deleted\'); })()">Delete</button>'));
+}
+
+/* ============================================================
+   BILLING (POS)
+   ============================================================ */
+VIEWS.pos = function() {
+  const q = S.search.pos.toLowerCase();
+  const list = DB.products.filter(p => !q || p.name.toLowerCase().includes(q) || p.sku.toLowerCase().includes(q));
+  const nextNo = DB.settings.invPrefix + '-' + String(DB.seq.bill).padStart(4, '0');
+
+  const cartItems = S.cart.map(c => {
+    const p = DB.products.find(x => x.id === c.pid);
+    return { pid: p.id, sku: p.sku, name: p.name, hsn: p.hsn, qty: c.qty, price: p.sp, pp: p.pp, gst: p.gst };
+  });
+  const calc = computeBill(cartItems, { type: S.discType, val: S.discVal });
+  const paid = S.paid === null ? calc.total : clamp(+S.paid || 0, 0, calc.total);
+  const due = calc.total - paid;
+
+  return '' +
+  '<div class="pos">' +
+    '<div class="pos-left">' +
+      '<div class="search">' + navIcon('M11 19a8 8 0 100-16 8 8 0 000 16zM21 21l-4.3-4.3') +
+        '<input id="pos-q" placeholder="Search product, or scan barcode / type SKU and press Enter…" value="' + esc(S.search.pos) + '" oninput="S.search.pos=this.value; renderPosGrid()" onkeydown="posKey(event)">' +
+      '</div>' +
+      '<div class="pgrid" id="pos-grid">' + posGridHTML(list) + '</div>' +
+      '<div class="kbd-hint">Barcode scanners work here — the scanner types the SKU and presses <kbd>Enter</kbd> automatically. Selling from <b>' + storeName(S.store) + '</b> (switch on the top bar).</div>' +
+    '</div>' +
+    '<div class="bill-panel"><div class="bill">' +
+      '<div class="bill-head"><span class="t">TAX INVOICE</span><span class="no">' + nextNo + '</span><span class="r">' + dstr(Date.now()) + '</span></div>' +
+      '<div class="perf"></div>' +
+      '<div class="bill-b">' +
+        '<div class="bill-cust">' +
+          '<select id="pos-cust" onchange="S.custId=this.value">' + DB.customers.map(c => '<option value="' + c.id + '"' + (S.custId === c.id ? ' selected' : '') + '>' + esc(c.name) + (c.balance > 0 ? ' (due ' + fmt(c.balance) + ')' : '') + '</option>').join('') + '</select>' +
+          '<button class="btn sm" onclick="customerForm(null, true)" title="Add customer">+ New</button>' +
+        '</div>' +
+        '<div class="bill-lines">' +
+          (cartItems.length ? cartItems.map(i =>
+            '<div class="bline">' +
+              '<div><div class="nm">' + esc(i.name) + '</div><div class="sk">' + esc(i.sku) + ' · ' + fmt(i.price) + ' + ' + i.gst + '% GST</div></div>' +
+              '<div class="qty"><button onclick="cartQty(\'' + i.pid + '\',-1)" aria-label="Less">−</button><input type="number" min="1" value="' + i.qty + '" onchange="cartSet(\'' + i.pid + '\', this.value)"><button onclick="cartQty(\'' + i.pid + '\',1)" aria-label="More">+</button></div>' +
+              '<div class="amt num">' + fmt(i.qty * i.price) + '</div>' +
+              '<button class="x" onclick="cartRemove(\'' + i.pid + '\')" aria-label="Remove">×</button>' +
+            '</div>').join('')
+          : '<div class="bill-empty">Bill is empty — tap a product on the left,<br>or scan a barcode to add it.</div>') +
+        '</div>' +
+        '<div class="disc-row"><span class="lbl">Discount</span>' +
+          '<select onchange="S.discType=this.value; render()"><option value="pct"' + (S.discType === 'pct' ? ' selected' : '') + '>%</option><option value="flat"' + (S.discType === 'flat' ? ' selected' : '') + '>₹ flat</option></select>' +
+          '<input type="number" min="0" value="' + S.discVal + '" onchange="S.discVal=+this.value||0; render()">' +
+        '</div>' +
+        '<div class="bill-tot">' +
+          '<div class="trow"><span>Subtotal</span><b class="num">' + fmt(calc.sub) + '</b></div>' +
+          (calc.discount > 0 ? '<div class="trow"><span>Discount</span><b class="num" style="color:var(--green)">− ' + fmt(calc.discount) + '</b></div>' : '') +
+          '<div class="trow"><span>Taxable value</span><b class="num">' + fmt(calc.taxable) + '</b></div>' +
+          '<div class="trow"><span>CGST</span><b class="num">' + fmt(calc.cgst) + '</b></div>' +
+          '<div class="trow"><span>SGST</span><b class="num">' + fmt(calc.sgst) + '</b></div>' +
+          (calc.roundOff !== 0 ? '<div class="trow"><span>Round off</span><b class="num">' + (calc.roundOff > 0 ? '+' : '') + fmt2(calc.roundOff) + '</b></div>' : '') +
+          '<div class="trow grand"><span>Total</span><span class="num">' + fmt(calc.total) + '</span></div>' +
+        '</div>' +
+        '<div class="pay-modes">' + ['Cash', 'UPI', 'Card', 'Credit'].map(m => '<button class="pm' + (S.payMode === m ? ' on' : '') + '" onclick="setPayMode(\'' + m + '\')">' + m + '</button>').join('') + '</div>' +
+        '<div class="paid-row"><label>Amount received</label><input type="number" min="0" value="' + paid + '" onchange="S.paid=this.value; render()"></div>' +
+        (due > 0 ? '<div class="trow" style="margin-bottom:8px"><span>Balance to credit book</span><b class="num" style="color:var(--red)">' + fmt(due) + '</b></div>' : '') +
+        '<button class="btn primary wide lg" ' + (cartItems.length ? '' : 'disabled ') + 'onclick="checkout()">Generate invoice · ' + fmt(calc.total) + '</button>' +
+        (cartItems.length ? '<button class="btn ghost wide sm" style="margin-top:7px" onclick="clearCart()">Clear bill</button>' : '') +
+      '</div>' +
+    '</div></div>' +
+  '</div>';
+};
+AFTER.pos = function() { const el = $('#pos-q'); if (el) { el.focus(); el.setSelectionRange(el.value.length, el.value.length); } };
+
+function posGridHTML(list) {
+  if (!list.length) return '<div class="empty" style="grid-column:1/-1">No products match. Check the spelling or add it under Products.</div>';
+  return list.map(p => {
+    const st = p.stk[S.store];
+    const out = st <= 0;
+    return '<button class="pcard' + (out ? ' out' : '') + '" ' + (out ? 'disabled' : 'onclick="cartAdd(\'' + p.id + '\')"') + '>' +
+      ((st > 0 && st <= p.min) ? '<span class="lowdot" title="Low stock"></span>' : '') + (out ? '<span class="lowdot outdot" title="Out of stock"></span>' : '') +
+      '<div class="cat">' + esc(p.cat) + '</div><div class="nm">' + esc(p.name) + '</div>' +
+      '<div class="pr num">' + fmt(p.sp) + '</div><div class="stk">' + (out ? 'Out of stock here' : st + ' in ' + storeName(S.store)) + ' · <span class="mono">' + esc(p.sku) + '</span></div>' +
+    '</button>';
+  }).join('');
+}
+function renderPosGrid() {
+  const q = S.search.pos.toLowerCase();
+  const list = DB.products.filter(p => !q || p.name.toLowerCase().includes(q) || p.sku.toLowerCase().includes(q));
+  const grid = $('#pos-grid'); if (grid) grid.innerHTML = posGridHTML(list);
+}
+function posKey(e) {
+  if (e.key !== 'Enter') return;
+  const q = S.search.pos.trim().toUpperCase();
+  if (!q) return;
+  const exact = DB.products.find(p => p.sku.toUpperCase() === q);
+  const list = DB.products.filter(p => p.name.toUpperCase().includes(q) || p.sku.toUpperCase().includes(q));
+  const hit = exact || (list.length === 1 ? list[0] : null);
+  if (hit) { S.search.pos = ''; cartAdd(hit.id); }
+  else toast('No exact match for "' + q + '"', true);
+}
+function cartAdd(pid) {
+  const p = DB.products.find(x => x.id === pid);
+  const inCart = S.cart.find(c => c.pid === pid);
+  const have = p.stk[S.store];
+  const want = (inCart ? inCart.qty : 0) + 1;
+  if (want > have) { toast('Only ' + have + ' pcs of ' + p.name + ' in ' + storeName(S.store), true); return; }
+  if (inCart) inCart.qty++; else S.cart.push({ pid, qty: 1 });
+  render();
+}
+function cartQty(pid, d) {
+  const c = S.cart.find(x => x.pid === pid); if (!c) return;
+  const p = DB.products.find(x => x.id === pid);
+  const nv = c.qty + d;
+  if (nv <= 0) { S.cart = S.cart.filter(x => x.pid !== pid); }
+  else if (nv > p.stk[S.store]) { toast('Only ' + p.stk[S.store] + ' pcs available', true); return; }
+  else c.qty = nv;
+  render();
+}
+function cartSet(pid, v) {
+  const c = S.cart.find(x => x.pid === pid); if (!c) return;
+  const p = DB.products.find(x => x.id === pid);
+  const nv = Math.floor(+v || 0);
+  if (nv <= 0) S.cart = S.cart.filter(x => x.pid !== pid);
+  else c.qty = Math.min(nv, p.stk[S.store]);
+  render();
+}
+function cartRemove(pid) { S.cart = S.cart.filter(x => x.pid !== pid); render(); }
+function clearCart() { S.cart = []; S.discVal = 0; S.paid = null; render(); }
+function setPayMode(m) { S.payMode = m; if (m === 'Credit') S.paid = 0; else S.paid = null; render(); }
+
+function checkout() {
+  if (!S.cart.length) return;
+  if (!S.custId) S.custId = DB.customers[0].id;
+  const cust = DB.customers.find(c => c.id === S.custId);
+  const items = S.cart.map(c => {
+    const p = DB.products.find(x => x.id === c.pid);
+    return { pid: p.id, sku: p.sku, name: p.name, hsn: p.hsn, qty: c.qty, price: p.sp, pp: p.pp, gst: p.gst };
+  });
+  const calc = computeBill(items, { type: S.discType, val: S.discVal });
+  const paid = S.paid === null ? calc.total : clamp(+S.paid || 0, 0, calc.total);
+  const due = calc.total - paid;
+  if (due > 0 && cust.walkin) { toast('Credit sales need a saved customer — pick or add one', true); return; }
+
+  const bill = {
+    id: nid(), no: DB.settings.invPrefix + '-' + String(DB.seq.bill++).padStart(4, '0'), date: Date.now(),
+    customerId: cust.id, customer: cust.name, items,
+    sub: calc.sub, discount: calc.discount, taxable: calc.taxable, cgst: calc.cgst, sgst: calc.sgst,
+    roundOff: calc.roundOff, total: calc.total, paid, due,
+    mode: due > 0 && paid === 0 ? 'Credit' : S.payMode, store: S.store, by: S.user.name
+  };
+  DB.bills.unshift(bill);
+  items.forEach(i => {
+    const p = DB.products.find(x => x.id === i.pid);
+    p.stk[S.store] = Math.max(0, p.stk[S.store] - i.qty);
+    DB.logs.unshift({ id: nid(), date: bill.date, type: 'sale', pid: p.id, name: p.name, qty: -i.qty, store: storeName(S.store), by: S.user.username, note: bill.no });
+  });
+  cust.balance += due;
+  if (paid > 0) DB.payments.unshift({ id: nid(), no: 'PAY-' + String(DB.seq.pay++).padStart(3, '0'), date: bill.date, type: 'in', party: 'customer', partyId: cust.id, amount: paid, mode: bill.mode === 'Credit' ? 'Cash' : bill.mode, note: 'Bill ' + bill.no });
+
+  S.cart = []; S.discVal = 0; S.paid = null; S.payMode = 'Cash'; S.lastBillId = bill.id;
+  toast('Invoice ' + bill.no + ' saved · stock updated');
+  showInvoice(bill.id);
+}
+
+/* ============================================================
+   INVOICE — preview, print/PDF, UPI QR, WhatsApp
+   ============================================================ */
+function invoiceHTML(b, forPrint) {
+  const s = DB.settings;
+  const cust = DB.customers.find(c => c.id === b.customerId) || { name: b.customer, phone: '', addr: '', gstin: '' };
+  const calc = computeBill(b.items, null); /* rates table only */
+  const rateRows = calc.byRate.map(r =>
+    '<tr><td>' + r.rate + '%</td><td>' + fmt2(scaleRate(b, r).taxable) + '</td><td>' + fmt2(scaleRate(b, r).tax / 2) + '</td><td>' + fmt2(scaleRate(b, r).tax / 2) + '</td></tr>').join('');
+  return '' +
+  '<div class="inv">' +
+    '<div class="inv-top">' +
+      '<div class="shop"><div class="nm">STC <span>Connect</span></div>' +
+        '<div>' + esc(s.tagline) + '</div><div>' + esc(s.address) + '</div>' +
+        '<div>Ph: ' + esc(s.phone) + ' · GSTIN: <span class="mono">' + esc(s.gstin) + '</span></div></div>' +
+      '<div class="meta"><div class="no">' + esc(b.no) + '</div><div>' + dstr(b.date) + ' · ' + tstr(b.date) + '</div>' +
+        '<div>Billed by: ' + esc(b.by) + '</div><div>Counter: ' + esc(storeName(b.store)) + '</div>' +
+        '<div style="margin-top:6px"><span class="inv-paidtag" style="color:' + (b.due > 0 ? 'var(--red)' : 'var(--green)') + '">' + (b.due > 0 ? 'BALANCE DUE' : 'PAID') + '</span></div></div>' +
+    '</div>' +
+    '<div class="inv-title">Tax Invoice · Original for recipient</div>' +
+    '<div class="inv-cust"><div><b>' + esc(cust.name) + '</b>' +
+      (cust.phone ? '<div>Ph: ' + esc(cust.phone) + '</div>' : '') + (cust.addr ? '<div>' + esc(cust.addr) + '</div>' : '') +
+      (cust.gstin ? '<div>GSTIN: <span class="mono">' + esc(cust.gstin) + '</span></div>' : '') + '</div>' +
+      '<div style="text-align:right;color:#555">Place of supply: Maharashtra (27)<br>Payment: ' + esc(b.mode) + '</div></div>' +
+    '<table class="inv-t"><thead><tr><th>#</th><th>Item</th><th>HSN</th><th class="r">Qty</th><th class="r">Rate ₹</th><th class="r">GST</th><th class="r">Amount ₹</th></tr></thead><tbody>' +
+    b.items.map((i, n) => '<tr><td>' + (n + 1) + '</td><td>' + esc(i.name) + '<br><span class="mono" style="font-size:9.5px;color:#777">' + esc(i.sku) + '</span></td><td class="mono">' + esc(i.hsn) + '</td><td class="r">' + i.qty + '</td><td class="r">' + fmt2(i.price) + '</td><td class="r">' + i.gst + '%</td><td class="r">' + fmt2(i.qty * i.price) + '</td></tr>').join('') +
+    '</tbody></table>' +
+    '<div class="inv-sum">' +
+      '<div class="inv-gst"><table><thead><tr><th>GST</th><th>Taxable ₹</th><th>CGST ₹</th><th>SGST ₹</th></tr></thead><tbody>' + rateRows + '</tbody></table>' +
+        '<div style="margin-top:8px;color:#555">Amount in words: <b>' + inWords(b.total) + ' only</b></div></div>' +
+      '<div class="inv-tot">' +
+        '<div class="row"><span>Subtotal</span><span>' + fmt2(b.sub) + '</span></div>' +
+        (b.discount > 0 ? '<div class="row"><span>Discount</span><span>− ' + fmt2(b.discount) + '</span></div>' : '') +
+        '<div class="row"><span>Taxable value</span><span>' + fmt2(b.taxable) + '</span></div>' +
+        '<div class="row"><span>CGST</span><span>' + fmt2(b.cgst) + '</span></div>' +
+        '<div class="row"><span>SGST</span><span>' + fmt2(b.sgst) + '</span></div>' +
+        (b.roundOff !== 0 ? '<div class="row"><span>Round off</span><span>' + fmt2(b.roundOff) + '</span></div>' : '') +
+        '<div class="row g"><span>Total</span><span>' + fmt(b.total) + '</span></div>' +
+        '<div class="row"><span>Received (' + esc(b.mode) + ')</span><span>' + fmt2(b.paid) + '</span></div>' +
+        (b.due > 0 ? '<div class="row" style="color:var(--red);font-weight:700"><span>Balance due</span><span>' + fmt2(b.due) + '</span></div>' : '') +
+      '</div>' +
+    '</div>' +
+    '<div class="inv-foot">' +
+      '<div class="terms"><b>Terms:</b> ' + esc(s.terms) + '</div>' +
+      '<div class="qr"><div class="qrbox" id="' + (forPrint ? 'qr-print' : 'qr-view') + '"></div>Scan to pay via UPI<br><span class="mono">' + esc(s.upi) + '</span></div>' +
+    '</div>' +
+  '</div>';
+}
+/* scale a rate-group from raw items to the discounted bill values */
+function scaleRate(b, r) {
+  const factor = b.sub > 0 ? b.taxable / b.sub : 1;
+  return { taxable: r.taxable * factor, tax: r.tax * factor };
+}
+function drawQR(elId, b) {
+  const el = document.getElementById(elId); if (!el) return;
+  el.innerHTML = '';
+  const upi = 'upi://pay?pa=' + encodeURIComponent(DB.settings.upi) + '&pn=' + encodeURIComponent(DB.settings.shopName) + '&am=' + (b.due > 0 ? b.due : b.total).toFixed(2) + '&cu=INR&tn=' + encodeURIComponent(b.no);
+  if (typeof QRCode !== 'undefined') { new QRCode(el, { text: upi, width: 88, height: 88, correctLevel: QRCode.CorrectLevel.M }); }
+  else el.innerHTML = '<span style="font-size:9px;color:#999;padding:4px">QR needs internet<br>(cdnjs)</span>';
+}
+function showInvoice(billId) {
+  const b = DB.bills.find(x => x.id === billId); if (!b) return;
+  const cust = DB.customers.find(c => c.id === b.customerId);
+  const waText = encodeURIComponent('*' + DB.settings.shopName + '*\nInvoice ' + b.no + ' · ' + dstr(b.date) + '\nTotal: ' + fmt(b.total) + (b.due > 0 ? '\nBalance due: ' + fmt(b.due) : ' (Paid)') + '\nThank you for shopping with us!');
+  const waHref = 'https://wa.me/91' + (cust && cust.phone ? cust.phone.replace(/\D/g, '') : '') + '?text=' + waText;
+  openModal(modalShell('Invoice ' + b.no,
+    '<div style="max-height:60vh;overflow-y:auto;border:1px solid var(--line);border-radius:8px;padding:16px;background:#fff">' + invoiceHTML(b, false) + '</div>',
+    '<a class="btn" href="' + waHref + '" target="_blank" rel="noopener">Share on WhatsApp</a>' +
+    '<button class="btn" onclick="printInvoice(\'' + b.id + '\')">Print / Save as PDF</button>' +
+    '<button class="btn primary" onclick="closeModal(); go(\'pos\')">New sale</button>'), true);
+  drawQR('qr-view', b);
+}
+function printInvoice(billId) {
+  const b = DB.bills.find(x => x.id === billId); if (!b) return;
+  $('#print-root').innerHTML = invoiceHTML(b, true);
+  drawQR('qr-print', b);
+  setTimeout(() => window.print(), 250);
+}
+/* Indian-system number to words (rupees) */
+function inWords(n) {
+  n = Math.round(n);
+  if (n === 0) return 'Zero Rupees';
+  const ones = ['', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine', 'Ten', 'Eleven', 'Twelve', 'Thirteen', 'Fourteen', 'Fifteen', 'Sixteen', 'Seventeen', 'Eighteen', 'Nineteen'];
+  const tens = ['', '', 'Twenty', 'Thirty', 'Forty', 'Fifty', 'Sixty', 'Seventy', 'Eighty', 'Ninety'];
+  const two = x => x < 20 ? ones[x] : tens[Math.floor(x / 10)] + (x % 10 ? ' ' + ones[x % 10] : '');
+  const three = x => (x >= 100 ? ones[Math.floor(x / 100)] + ' Hundred' + (x % 100 ? ' ' : '') : '') + (x % 100 ? two(x % 100) : '');
+  let out = '';
+  const cr = Math.floor(n / 10000000); n %= 10000000;
+  const lk = Math.floor(n / 100000); n %= 100000;
+  const th = Math.floor(n / 1000); n %= 1000;
+  if (cr) out += three(cr) + ' Crore ';
+  if (lk) out += two(lk) + ' Lakh ';
+  if (th) out += two(th) + ' Thousand ';
+  if (n) out += three(n);
+  return (out.trim() + ' Rupees');
+}
+
+/* ============================================================
+   INVENTORY
+   ============================================================ */
+VIEWS.inventory = function() {
+  const low = DB.products.filter(p => (p.stk.s1 + p.stk.s2) <= p.min);
+  return '' +
+  '<div class="page-h"><h2>Inventory</h2><span class="sub">' + DB.products.length + ' items across ' + STORES.length + ' locations</span>' +
+    '<div class="r">' +
+      '<button class="btn" onclick="stockMoveForm(\'in\')">Stock in</button>' +
+      '<button class="btn" onclick="stockMoveForm(\'out\')">Stock out</button>' +
+      '<button class="btn primary" onclick="stockMoveForm(\'transfer\')">Transfer</button>' +
+    '</div></div>' +
+  (low.length ? '<div class="card mb" style="border-left:4px solid var(--amber)"><div class="card-b" style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">' +
+    '<b style="font-size:13px">Reorder soon:</b>' + low.map(p => '<span class="tag amber">' + esc(p.name) + ' · ' + (p.stk.s1 + p.stk.s2) + ' left</span>').join('') + '</div></div>' : '') +
+  '<div class="grid g2-1">' +
+    '<div class="card"><div class="card-h"><h3>Stock by location</h3></div><div class="table-wrap"><table class="tbl"><thead><tr>' +
+      '<th>Product</th><th class="c">Showroom</th><th class="c">Godown</th><th class="c">Total</th><th class="c">Reorder at</th><th>Status</th></tr></thead><tbody>' +
+      DB.products.map(p => {
+        const tot = p.stk.s1 + p.stk.s2;
+        const st = tot === 0 ? '<span class="tag red">Out</span>' : tot <= p.min ? '<span class="tag amber">Low</span>' : '<span class="tag green">OK</span>';
+        return '<tr><td><b>' + esc(p.name) + '</b> <span class="chip">' + esc(p.sku) + '</span></td><td class="c num">' + p.stk.s1 + '</td><td class="c num">' + p.stk.s2 + '</td><td class="c num"><b>' + tot + '</b></td><td class="c num">' + p.min + '</td><td>' + st + '</td></tr>';
+      }).join('') +
+    '</tbody></table></div></div>' +
+    '<div class="card"><div class="card-h"><h3>Movement log</h3><div class="r"><span class="chip">latest 30</span></div></div><div class="table-wrap"><table class="tbl"><thead><tr><th>When</th><th>Type</th><th>Item</th><th class="r">Qty</th></tr></thead><tbody>' +
+      DB.logs.slice(0, 30).map(l => {
+        const tag = { sale: '<span class="tag blue">Sale</span>', purchase: '<span class="tag green">Purchase</span>', in: '<span class="tag green">Stock in</span>', out: '<span class="tag red">Stock out</span>', transfer: '<span class="tag grey">Transfer</span>' }[l.type] || l.type;
+        return '<tr><td style="white-space:nowrap">' + dstr(l.date) + '<div style="font-size:11px;color:var(--faint)">' + tstr(l.date) + ' · ' + esc(l.by) + '</div></td><td>' + tag + '</td><td>' + esc(l.name) + '<div style="font-size:11px;color:var(--faint)">' + esc(l.note || '') + (l.store ? ' · ' + esc(l.store) : '') + '</div></td><td class="r num"><b style="color:' + (l.qty < 0 ? 'var(--red)' : 'var(--green)') + '">' + (l.qty > 0 ? '+' : '') + l.qty + '</b></td></tr>';
+      }).join('') +
+    '</tbody></table></div></div>' +
+  '</div>';
+};
+
+function stockMoveForm(kind) {
+  const title = kind === 'in' ? 'Stock in' : kind === 'out' ? 'Stock out' : 'Transfer between locations';
+  const opts = DB.products.map(p => '<option value="' + p.id + '">' + esc(p.name) + ' — S:' + p.stk.s1 + ' / G:' + p.stk.s2 + '</option>').join('');
+  const storeSel = id => '<select id="' + id + '">' + STORES.map(s => '<option value="' + s.id + '">' + s.name + '</option>').join('') + '</select>';
+  let body = '<div class="field"><label>Product</label><select id="sm-pid">' + opts + '</select></div>' +
+    '<div class="frow"><div class="field"><label>Quantity</label><input id="sm-qty" type="number" min="1" value="1"></div>';
+  if (kind === 'transfer') body += '<div class="field"><label>From</label>' + storeSel('sm-from') + '</div><div class="field"><label>To</label>' + storeSel('sm-to') + '</div>';
+  else body += '<div class="field"><label>Location</label>' + storeSel('sm-store') + '</div>';
+  body += '</div><div class="field"><label>Note / reason</label><input id="sm-note" placeholder="' + (kind === 'in' ? 'e.g. Supplier delivery, sale return' : kind === 'out' ? 'e.g. Damaged piece, demo unit' : 'e.g. Weekend restock') + '"></div>';
+  openModal(modalShell(title, body,
+    '<button class="btn" onclick="closeModal()">Cancel</button><button class="btn primary" onclick="stockMoveSave(\'' + kind + '\')">Save</button>'));
+}
+function stockMoveSave(kind) {
+  const p = DB.products.find(x => x.id === $('#sm-pid').value);
+  const qty = Math.max(1, Math.floor(+$('#sm-qty').value || 0));
+  const note = $('#sm-note').value.trim();
+  if (kind === 'transfer') {
+    const from = $('#sm-from').value, to = $('#sm-to').value;
+    if (from === to) { toast('Pick two different locations', true); return; }
+    if (p.stk[from] < qty) { toast('Only ' + p.stk[from] + ' pcs in ' + storeName(from), true); return; }
+    p.stk[from] -= qty; p.stk[to] += qty;
+    DB.logs.unshift({ id: nid(), date: Date.now(), type: 'transfer', pid: p.id, name: p.name, qty, store: storeName(from) + ' → ' + storeName(to), by: S.user.username, note });
+    toast('Moved ' + qty + ' pcs to ' + storeName(to));
+  } else {
+    const st = $('#sm-store').value;
+    if (kind === 'out' && p.stk[st] < qty) { toast('Only ' + p.stk[st] + ' pcs in ' + storeName(st), true); return; }
+    p.stk[st] += kind === 'in' ? qty : -qty;
+    DB.logs.unshift({ id: nid(), date: Date.now(), type: kind, pid: p.id, name: p.name, qty: kind === 'in' ? qty : -qty, store: storeName(st), by: S.user.username, note });
+    toast(kind === 'in' ? 'Stock added' : 'Stock removed');
+  }
+  closeModal(); render();
+}
+
+/* ============================================================
+   CUSTOMERS (incl. credit book)
+   ============================================================ */
+VIEWS.customers = function() {
+  const q = S.search.customers.toLowerCase();
+  let list = DB.customers.filter(c => !c.walkin).filter(c => !q || c.name.toLowerCase().includes(q) || (c.phone || '').includes(q));
+  if (S.custFilter === 'due') list = list.filter(c => c.balance > 0);
+  const totalDue = sum(DB.customers, c => Math.max(0, c.balance));
+  return '' +
+  '<div class="page-h"><h2>Customers</h2><span class="sub">Credit book outstanding: <b style="color:' + (totalDue > 0 ? 'var(--red)' : 'var(--green)') + '">' + fmt(totalDue) + '</b></span>' +
+    '<div class="r">' +
+      '<div class="filters"><button class="fchip' + (S.custFilter === 'all' ? ' on' : '') + '" onclick="S.custFilter=\'all\'; render()">All</button>' +
+      '<button class="fchip' + (S.custFilter === 'due' ? ' on' : '') + '" onclick="S.custFilter=\'due\'; render()">Udhar / due only</button></div>' +
+      '<div class="search">' + navIcon('M11 19a8 8 0 100-16 8 8 0 000 16zM21 21l-4.3-4.3') + '<input placeholder="Search name or mobile…" value="' + esc(S.search.customers) + '" oninput="S.search.customers=this.value; render()"></div>' +
+      '<button class="btn primary" onclick="customerForm()">+ Add customer</button>' +
+    '</div></div>' +
+  '<div class="card"><div class="table-wrap"><table class="tbl"><thead><tr><th>Customer</th><th>Mobile</th><th class="r">Purchases</th><th class="r">Lifetime value</th><th class="r">Outstanding</th><th></th></tr></thead><tbody>' +
+  (list.length ? list.map(c => {
+    const bills = DB.bills.filter(b => b.customerId === c.id);
+    return '<tr class="click" onclick="customerDetail(\'' + c.id + '\')"><td><b>' + esc(c.name) + '</b>' + (c.gstin ? '<div style="font-size:11px;color:var(--faint)">GSTIN ' + esc(c.gstin) + '</div>' : '') + '</td>' +
+      '<td class="mono">' + esc(c.phone || '—') + '</td><td class="r num">' + bills.length + '</td><td class="r num">' + fmt(sum(bills, b => b.total)) + '</td>' +
+      '<td class="r num">' + (c.balance > 0 ? '<b style="color:var(--red)">' + fmt(c.balance) + '</b>' : '<span class="tag green">Clear</span>') + '</td>' +
+      '<td class="r" style="white-space:nowrap">' + (c.balance > 0 ? '<button class="btn sm" onclick="event.stopPropagation(); recPaymentForm(\'customer\',\'' + c.id + '\')">Collect</button> ' : '') + '<button class="btn sm ghost" onclick="event.stopPropagation(); customerForm(\'' + c.id + '\')">Edit</button></td></tr>';
+  }).join('') : '<tr><td colspan="6"><div class="empty">' + (S.custFilter === 'due' ? 'No pending balances — the credit book is clear.' : 'No customers yet — add your first one.') + '</div></td></tr>') +
+  '</tbody></table></div></div>';
+};
+
+function customerForm(id, fromPOS) {
+  const c = id ? DB.customers.find(x => x.id === id) : null;
+  const body =
+    '<div class="field"><label>Customer name</label><input id="cf-name" value="' + (c ? esc(c.name) : '') + '" placeholder="e.g. Prakash Jadhav"></div>' +
+    '<div class="frow"><div class="field"><label>Mobile number</label><input id="cf-phone" class="mono" value="' + (c ? esc(c.phone) : '') + '" placeholder="98XXXXXXXX"></div>' +
+    '<div class="field"><label>GSTIN (optional)</label><input id="cf-gstin" class="mono" value="' + (c ? esc(c.gstin || '') : '') + '"></div></div>' +
+    '<div class="field"><label>Address</label><input id="cf-addr" value="' + (c ? esc(c.addr || '') : '') + '" placeholder="Area, city"></div>';
+  openModal(modalShell(c ? 'Edit customer' : 'Add customer', body,
+    '<button class="btn" onclick="closeModal()">Cancel</button><button class="btn primary" onclick="saveCustomer(' + (c ? '\'' + c.id + '\'' : 'null') + ',' + (fromPOS ? 'true' : 'false') + ')">' + (c ? 'Save changes' : 'Add customer') + '</button>'));
+}
+function saveCustomer(id, fromPOS) {
+  const name = $('#cf-name').value.trim();
+  if (!name) { toast('Customer name is required', true); return; }
+  const data = { name, phone: $('#cf-phone').value.trim(), gstin: $('#cf-gstin').value.trim().toUpperCase(), addr: $('#cf-addr').value.trim() };
+  if (id) { Object.assign(DB.customers.find(c => c.id === id), data); toast('Customer updated'); }
+  else { const c = Object.assign({ id: nid(), balance: 0 }, data); DB.customers.push(c); if (fromPOS) S.custId = c.id; toast('Customer added'); }
+  closeModal(); render();
+}
+function customerDetail(id) {
+  const c = DB.customers.find(x => x.id === id);
+  const bills = DB.bills.filter(b => b.customerId === id);
+  const pays = DB.payments.filter(p => p.party === 'customer' && p.partyId === id);
+  const body =
+    '<div style="display:flex;gap:14px;flex-wrap:wrap;margin-bottom:14px">' +
+      '<div><div style="font-size:11px;color:var(--sub);font-weight:600">MOBILE</div><div class="mono">' + esc(c.phone || '—') + '</div></div>' +
+      '<div><div style="font-size:11px;color:var(--sub);font-weight:600">ADDRESS</div><div>' + esc(c.addr || '—') + '</div></div>' +
+      '<div style="margin-left:auto;text-align:right"><div style="font-size:11px;color:var(--sub);font-weight:600">OUTSTANDING</div><div class="num" style="font-family:var(--font-display);font-weight:800;font-size:20px;color:' + (c.balance > 0 ? 'var(--red)' : 'var(--green)') + '">' + fmt(c.balance) + '</div></div>' +
+    '</div>' +
+    '<h4 style="font-size:13px;margin-bottom:6px">Purchase history</h4>' +
+    '<div class="table-wrap" style="max-height:220px;overflow-y:auto;border:1px solid var(--line);border-radius:8px"><table class="tbl"><thead><tr><th>Bill</th><th>Date</th><th class="r">Total</th><th class="r">Due</th></tr></thead><tbody>' +
+    (bills.length ? bills.map(b => '<tr class="click" onclick="closeModal(); showInvoice(\'' + b.id + '\')"><td class="mono">' + esc(b.no) + '</td><td>' + dstr(b.date) + '</td><td class="r num">' + fmt(b.total) + '</td><td class="r num">' + (b.due > 0 ? '<b style="color:var(--red)">' + fmt(b.due) + '</b>' : '—') + '</td></tr>').join('') : '<tr><td colspan="4"><div class="empty">No purchases yet.</div></td></tr>') +
+    '</tbody></table></div>' +
+    (pays.length ? '<h4 style="font-size:13px;margin:12px 0 6px">Payments received</h4><div style="font-size:12.5px;color:var(--sub)">' + pays.slice(0, 5).map(p => dstr(p.date) + ' · ' + fmt(p.amount) + ' (' + p.mode + ')').join('<br>') + '</div>' : '');
+  openModal(modalShell(c.name, body,
+    (c.balance > 0 ? '<button class="btn primary" onclick="recPaymentForm(\'customer\',\'' + c.id + '\')">Collect payment</button>' : '') +
+    '<button class="btn" onclick="closeModal()">Close</button>'), true);
+}
+
+/* ============================================================
+   PAYMENTS (collect from customer / pay supplier)
+   ============================================================ */
+function recPaymentForm(party, id) {
+  const rec = party === 'customer' ? DB.customers.find(x => x.id === id) : DB.suppliers.find(x => x.id === id);
+  const max = Math.max(0, rec.balance);
+  const body =
+    '<p class="section-note">' + (party === 'customer' ? 'Collecting against credit book balance of ' : 'Paying supplier against balance of ') + '<b>' + fmt(max) + '</b>.</p>' +
+    '<div class="frow">' +
+      '<div class="field"><label>Amount ₹</label><input id="pay-amt" type="number" min="1" max="' + max + '" value="' + max + '"></div>' +
+      '<div class="field"><label>Mode</label><select id="pay-mode"><option>Cash</option><option>UPI</option><option>Card</option><option>Bank</option></select></div>' +
+    '</div>' +
+    '<div class="field"><label>Note</label><input id="pay-note" placeholder="e.g. Part payment"></div>';
+  openModal(modalShell(party === 'customer' ? 'Collect payment — ' + rec.name : 'Pay supplier — ' + rec.name, body,
+    '<button class="btn" onclick="closeModal()">Cancel</button><button class="btn primary" onclick="recPaymentSave(\'' + party + '\',\'' + id + '\')">' + (party === 'customer' ? 'Record collection' : 'Record payment') + '</button>'));
+}
+function recPaymentSave(party, id) {
+  const rec = party === 'customer' ? DB.customers.find(x => x.id === id) : DB.suppliers.find(x => x.id === id);
+  const amt = clamp(Math.round(+$('#pay-amt').value || 0), 1, Math.max(0, rec.balance));
+  if (!amt) { toast('Enter an amount', true); return; }
+  rec.balance -= amt;
+  DB.payments.unshift({ id: nid(), no: 'PAY-' + String(DB.seq.pay++).padStart(3, '0'), date: Date.now(), type: party === 'customer' ? 'in' : 'out', party, partyId: id, amount: amt, mode: $('#pay-mode').value, note: $('#pay-note').value.trim() });
+  /* settle oldest dues first on customer bills */
+  if (party === 'customer') {
+    let left = amt;
+    DB.bills.slice().reverse().forEach(b => {
+      if (b.customerId === id && b.due > 0 && left > 0) { const take = Math.min(b.due, left); b.due -= take; b.paid += take; left -= take; }
+    });
+  } else {
+    let left = amt;
+    DB.purchases.slice().reverse().forEach(po => {
+      if (po.supplierId === id && po.due > 0 && left > 0) { const take = Math.min(po.due, left); po.due -= take; po.paid += take; left -= take; }
+    });
+  }
+  toast(fmt(amt) + (party === 'customer' ? ' collected from ' : ' paid to ') + rec.name);
+  closeModal(); render();
+}
+
+/* ============================================================
+   SUPPLIERS & PURCHASE ORDERS
+   ============================================================ */
+VIEWS.suppliers = function() {
+  const q = S.search.suppliers.toLowerCase();
+  const list = DB.suppliers.filter(s => !q || s.name.toLowerCase().includes(q));
+  const payable = sum(DB.suppliers, s => Math.max(0, s.balance));
+  return '' +
+  '<div class="page-h"><h2>Suppliers</h2><span class="sub">Total payable: <b style="color:' + (payable > 0 ? 'var(--red)' : 'var(--green)') + '">' + fmt(payable) + '</b></span>' +
+    '<div class="r">' +
+      '<div class="search">' + navIcon('M11 19a8 8 0 100-16 8 8 0 000 16zM21 21l-4.3-4.3') + '<input placeholder="Search supplier…" value="' + esc(S.search.suppliers) + '" oninput="S.search.suppliers=this.value; render()"></div>' +
+      '<button class="btn" onclick="supplierForm()">+ Add supplier</button>' +
+      '<button class="btn primary" onclick="poForm()">+ New purchase order</button>' +
+    '</div></div>' +
+  '<div class="grid g2-1">' +
+    '<div class="card"><div class="card-h"><h3>Purchase orders</h3></div><div class="table-wrap"><table class="tbl"><thead><tr><th>PO</th><th>Supplier</th><th>Date</th><th class="r">Total</th><th class="r">Paid</th><th>Status</th></tr></thead><tbody>' +
+      (DB.purchases.length ? DB.purchases.slice().sort((a, b) => b.date - a.date).map(po => {
+        const sup = DB.suppliers.find(s => s.id === po.supplierId);
+        return '<tr><td class="mono">' + esc(po.no) + '</td><td>' + esc(sup ? sup.name : '—') + '</td><td>' + dstr(po.date) + '</td><td class="r num">' + fmt(po.total) + '</td><td class="r num">' + fmt(po.paid) + '</td>' +
+          '<td>' + (po.due > 0 ? '<span class="tag amber">Due ' + fmt(po.due) + '</span>' : '<span class="tag green">Settled</span>') + '</td></tr>';
+      }).join('') : '<tr><td colspan="6"><div class="empty">No purchase orders yet — raise one to bring in stock.</div></td></tr>') +
+    '</tbody></table></div></div>' +
+    '<div class="card"><div class="card-h"><h3>Supplier ledger</h3></div><div class="table-wrap"><table class="tbl"><thead><tr><th>Supplier</th><th class="r">Payable</th><th></th></tr></thead><tbody>' +
+      list.map(s => '<tr><td><b>' + esc(s.name) + '</b><div style="font-size:11px;color:var(--faint)">' + esc(s.phone) + ' · GSTIN ' + esc(s.gstin) + '</div></td>' +
+        '<td class="r num">' + (s.balance > 0 ? '<b style="color:var(--red)">' + fmt(s.balance) + '</b>' : '<span class="tag green">Clear</span>') + '</td>' +
+        '<td class="r" style="white-space:nowrap">' + (s.balance > 0 ? '<button class="btn sm" onclick="recPaymentForm(\'supplier\',\'' + s.id + '\')">Pay</button> ' : '') + '<button class="btn sm ghost" onclick="supplierForm(\'' + s.id + '\')">Edit</button></td></tr>').join('') +
+    '</tbody></table></div></div>' +
+  '</div>';
+};
+
+function supplierForm(id) {
+  const s = id ? DB.suppliers.find(x => x.id === id) : null;
+  const body =
+    '<div class="field"><label>Supplier name</label><input id="sf-name" value="' + (s ? esc(s.name) : '') + '" placeholder="e.g. Deccan Electricals Distributors"></div>' +
+    '<div class="frow"><div class="field"><label>Phone</label><input id="sf-phone" class="mono" value="' + (s ? esc(s.phone) : '') + '"></div>' +
+    '<div class="field"><label>GSTIN</label><input id="sf-gstin" class="mono" value="' + (s ? esc(s.gstin) : '') + '"></div></div>' +
+    '<div class="field"><label>Address</label><input id="sf-addr" value="' + (s ? esc(s.addr || '') : '') + '"></div>';
+  openModal(modalShell(s ? 'Edit supplier' : 'Add supplier', body,
+    '<button class="btn" onclick="closeModal()">Cancel</button><button class="btn primary" onclick="saveSupplier(' + (s ? '\'' + s.id + '\'' : 'null') + ')">' + (s ? 'Save changes' : 'Add supplier') + '</button>'));
+}
+function saveSupplier(id) {
+  const name = $('#sf-name').value.trim();
+  if (!name) { toast('Supplier name is required', true); return; }
+  const data = { name, phone: $('#sf-phone').value.trim(), gstin: $('#sf-gstin').value.trim().toUpperCase(), addr: $('#sf-addr').value.trim() };
+  if (id) { Object.assign(DB.suppliers.find(x => x.id === id), data); toast('Supplier updated'); }
+  else { DB.suppliers.push(Object.assign({ id: nid(), balance: 0 }, data)); toast('Supplier added'); }
+  closeModal(); render();
+}
+
+/* purchase order: multi-line stock-in */
+let PO_LINES = [];
+function poForm() {
+  PO_LINES = [{ pid: DB.products[0].id, qty: 10, cost: DB.products[0].pp }];
+  openModal(modalShell('New purchase order', poBody(),
+    '<button class="btn" onclick="closeModal()">Cancel</button><button class="btn primary" onclick="poSave()">Receive stock &amp; save PO</button>'), true);
+}
+function poBody() {
+  const supOpts = DB.suppliers.map(s => '<option value="' + s.id + '">' + esc(s.name) + '</option>').join('');
+  const total = sum(PO_LINES, l => l.qty * l.cost);
+  const gstTotal = sum(PO_LINES, l => { const p = DB.products.find(x => x.id === l.pid); return l.qty * l.cost * (p ? p.gst : 18) / 100; });
+  return '<div class="frow">' +
+    '<div class="field"><label>Supplier</label><select id="po-sup">' + supOpts + '</select></div>' +
+    '<div class="field"><label>Receive into</label><select id="po-store">' + STORES.map(s => '<option value="' + s.id + '"' + (s.id === 's2' ? ' selected' : '') + '>' + s.name + '</option>').join('') + '</select></div>' +
+    '<div class="field"><label>Paid now ₹</label><input id="po-paid" type="number" min="0" value="0"></div>' +
+  '</div>' +
+  '<div id="po-lines">' + PO_LINES.map((l, i) =>
+    '<div class="frow" style="align-items:flex-end">' +
+      '<div class="field" style="flex:2"><label>' + (i === 0 ? 'Item' : '') + '</label><select onchange="poSetLine(' + i + ',\'pid\',this.value)">' + DB.products.map(p => '<option value="' + p.id + '"' + (p.id === l.pid ? ' selected' : '') + '>' + esc(p.name) + '</option>').join('') + '</select></div>' +
+      '<div class="field" style="max-width:90px"><label>' + (i === 0 ? 'Qty' : '') + '</label><input type="number" min="1" value="' + l.qty + '" onchange="poSetLine(' + i + ',\'qty\',this.value)"></div>' +
+      '<div class="field" style="max-width:110px"><label>' + (i === 0 ? 'Cost ₹/pc' : '') + '</label><input type="number" min="0" value="' + l.cost + '" onchange="poSetLine(' + i + ',\'cost\',this.value)"></div>' +
+      '<div class="field" style="max-width:44px"><label></label><button class="btn ghost" onclick="PO_LINES.splice(' + i + ',1); poRefresh()" aria-label="Remove line">×</button></div>' +
+    '</div>').join('') + '</div>' +
+  '<button class="btn sm" onclick="PO_LINES.push({pid: DB.products[0].id, qty: 10, cost: DB.products[0].pp}); poRefresh()">+ Add line</button>' +
+  '<div class="bill-tot mt"><div class="trow"><span>Goods value</span><b class="num">' + fmt(total) + '</b></div>' +
+  '<div class="trow"><span>GST (input credit)</span><b class="num">' + fmt(gstTotal) + '</b></div>' +
+  '<div class="trow grand"><span>PO total</span><span class="num">' + fmt(Math.round(total + gstTotal)) + '</span></div></div>';
+}
+function poSetLine(i, k, v) {
+  if (k === 'pid') { PO_LINES[i].pid = v; PO_LINES[i].cost = DB.products.find(p => p.id === v).pp; }
+  else PO_LINES[i][k] = Math.max(k === 'qty' ? 1 : 0, +v || 0);
+  poRefresh();
+}
+function poRefresh() {
+  const sup = $('#po-sup') ? $('#po-sup').value : null;
+  const store = $('#po-store') ? $('#po-store').value : 's2';
+  const paid = $('#po-paid') ? $('#po-paid').value : 0;
+  $('.modal .modal-b').innerHTML = poBody();
+  if (sup) $('#po-sup').value = sup;
+  $('#po-store').value = store; $('#po-paid').value = paid;
+}
+function poSave() {
+  if (!PO_LINES.length) { toast('Add at least one line', true); return; }
+  const sup = DB.suppliers.find(s => s.id === $('#po-sup').value);
+  const store = $('#po-store').value;
+  const items = PO_LINES.map(l => { const p = DB.products.find(x => x.id === l.pid); return { pid: p.id, sku: p.sku, name: p.name, qty: Math.floor(l.qty), cost: l.cost, gst: p.gst }; });
+  const goods = sum(items, i => i.qty * i.cost);
+  const total = Math.round(goods + sum(items, i => i.qty * i.cost * i.gst / 100));
+  const paid = clamp(Math.round(+$('#po-paid').value || 0), 0, total);
+  const po = { id: nid(), no: 'PO-' + String(DB.seq.po++).padStart(3, '0'), date: Date.now(), supplierId: sup.id, items, total, paid, due: total - paid, note: '' };
+  DB.purchases.push(po);
+  sup.balance += po.due;
+  items.forEach(i => {
+    const p = DB.products.find(x => x.id === i.pid);
+    p.stk[store] += i.qty;
+    if (i.cost !== p.pp) p.pp = i.cost; /* keep latest cost */
+    DB.logs.unshift({ id: nid(), date: po.date, type: 'purchase', pid: p.id, name: p.name, qty: i.qty, store: storeName(store), by: S.user.username, note: po.no + ' · ' + sup.name });
+  });
+  if (paid > 0) DB.payments.unshift({ id: nid(), no: 'PAY-' + String(DB.seq.pay++).padStart(3, '0'), date: po.date, type: 'out', party: 'supplier', partyId: sup.id, amount: paid, mode: 'Bank', note: 'Against ' + po.no });
+  toast(po.no + ' received into ' + storeName(store) + ' · stock updated');
+  closeModal(); render();
+}
+
+/* ============================================================
+   REPORTS
+   ============================================================ */
+function periodBills() {
+  const now = Date.now();
+  const from = S.reportPeriod === 'today' ? startOfDay(now)
+    : S.reportPeriod === '7d' ? startOfDay(now - 6 * DAY)
+    : S.reportPeriod === 'month' ? startOfMonth(now) : 0;
+  return DB.bills.filter(b => b.date >= from);
+}
+const PERIOD_LBL = { today: 'Today', '7d': 'Last 7 days', month: 'This month', all: 'All time' };
+
+VIEWS.reports = function() {
+  const bills = periodBills();
+  const revenue = sum(bills, b => b.taxable);
+  const gross = sum(bills, b => b.total);
+  const cogs = sum(bills, b => sum(b.items, i => i.qty * (i.pp || 0)));
+  const disc = sum(bills, b => b.discount);
+  /* proportional discount already inside taxable; profit = taxable - cogs */
+  const profit = revenue - cogs;
+  const tax = sum(bills, b => b.cgst + b.sgst);
+  const itemsSold = sum(bills, b => sum(b.items, i => i.qty));
+  const pFrom = S.reportPeriod === 'today' ? startOfDay(Date.now()) : S.reportPeriod === '7d' ? startOfDay(Date.now() - 6 * DAY) : S.reportPeriod === 'month' ? startOfMonth(Date.now()) : 0;
+  const cashIn = sum(DB.payments.filter(p => p.type === 'in' && p.date >= pFrom), p => p.amount);
+
+  /* GST by rate */
+  const gstMap = {};
+  bills.forEach(b => {
+    const c = computeBill(b.items, null);
+    const factor = b.sub > 0 ? b.taxable / b.sub : 1;
+    c.byRate.forEach(r => {
+      if (!gstMap[r.rate]) gstMap[r.rate] = { rate: r.rate, taxable: 0, tax: 0 };
+      gstMap[r.rate].taxable += r.taxable * factor;
+      gstMap[r.rate].tax += r.tax * factor;
+    });
+  });
+  const gstRows = Object.values(gstMap).sort((a, b) => a.rate - b.rate);
+
+  /* product-wise */
+  const prodMap = {};
+  bills.forEach(b => b.items.forEach(i => {
+    if (!prodMap[i.pid]) prodMap[i.pid] = { name: i.name, sku: i.sku, qty: 0, rev: 0, cost: 0 };
+    prodMap[i.pid].qty += i.qty; prodMap[i.pid].rev += i.qty * i.price; prodMap[i.pid].cost += i.qty * (i.pp || 0);
+  }));
+  const prodRows = Object.values(prodMap).sort((a, b) => b.rev - a.rev);
+
+  /* daily table for period */
+  const dayMap = {};
+  bills.forEach(b => { const k = dayKey(b.date); if (!dayMap[k]) dayMap[k] = { k, date: startOfDay(b.date), n: 0, total: 0, tax: 0 }; dayMap[k].n++; dayMap[k].total += b.total; dayMap[k].tax += b.cgst + b.sgst; });
+  const dayRows = Object.values(dayMap).sort((a, b) => b.date - a.date);
+
+  return '' +
+  '<div class="page-h"><h2>Reports</h2><span class="sub">' + PERIOD_LBL[S.reportPeriod] + ' · ' + bills.length + ' bills</span>' +
+    '<div class="r"><div class="filters">' + Object.keys(PERIOD_LBL).map(p => '<button class="fchip' + (S.reportPeriod === p ? ' on' : '') + '" onclick="S.reportPeriod=\'' + p + '\'; render()">' + PERIOD_LBL[p] + '</button>').join('') + '</div></div></div>' +
+  '<div class="grid g4 mb">' +
+    '<div class="card stat blue"><div class="k">Gross sales</div><div class="v num">' + fmt(gross) + '</div><div class="d">' + itemsSold + ' items · avg bill ' + fmt(bills.length ? gross / bills.length : 0) + '</div></div>' +
+    '<div class="card stat green"><div class="k">Gross profit</div><div class="v num">' + fmt(profit) + '</div><div class="d">margin ' + (revenue ? Math.round(profit / revenue * 100) : 0) + '% on taxable value</div></div>' +
+    '<div class="card stat amber"><div class="k">GST collected</div><div class="v num">' + fmt(tax) + '</div><div class="d">CGST + SGST payable</div></div>' +
+    '<div class="card stat red"><div class="k">Discounts given</div><div class="v num">' + fmt(disc) + '</div><div class="d">across ' + bills.filter(b => b.discount > 0).length + ' bills</div></div>' +
+  '</div>' +
+  '<div class="grid g2 mb">' +
+    '<div class="card"><div class="card-h"><h3>Profit &amp; loss — ' + PERIOD_LBL[S.reportPeriod] + '</h3></div><div class="card-b" style="font-size:13.5px">' +
+      '<div class="trow"><span>Sales (taxable value)</span><b class="num">' + fmt(revenue) + '</b></div>' +
+      '<div class="trow"><span>Cost of goods sold</span><b class="num">− ' + fmt(cogs) + '</b></div>' +
+      '<div class="trow grand" style="font-size:16px"><span>Gross profit</span><span class="num" style="color:' + (profit >= 0 ? 'var(--green)' : 'var(--red)') + '">' + fmt(profit) + '</span></div>' +
+      '<div class="trow" style="margin-top:8px"><span>GST collected (liability, not income)</span><b class="num">' + fmt(tax) + '</b></div>' +
+      '<div class="trow"><span>Cash + bank received in period</span><b class="num">' + fmt(cashIn) + '</b></div>' +
+    '</div></div>' +
+    '<div class="card"><div class="card-h"><h3>GST report (GSTR-1 summary)</h3></div><div class="table-wrap"><table class="tbl"><thead><tr><th>Rate</th><th class="r">Taxable ₹</th><th class="r">CGST ₹</th><th class="r">SGST ₹</th><th class="r">Total tax ₹</th></tr></thead><tbody>' +
+      (gstRows.length ? gstRows.map(r => '<tr><td><b>' + r.rate + '%</b></td><td class="r num">' + fmt2(r.taxable) + '</td><td class="r num">' + fmt2(r.tax / 2) + '</td><td class="r num">' + fmt2(r.tax / 2) + '</td><td class="r num"><b>' + fmt2(r.tax) + '</b></td></tr>').join('') +
+        '<tr><td><b>Total</b></td><td class="r num"><b>' + fmt2(sum(gstRows, r => r.taxable)) + '</b></td><td class="r num"><b>' + fmt2(sum(gstRows, r => r.tax) / 2) + '</b></td><td class="r num"><b>' + fmt2(sum(gstRows, r => r.tax) / 2) + '</b></td><td class="r num"><b>' + fmt2(sum(gstRows, r => r.tax)) + '</b></td></tr>'
+      : '<tr><td colspan="5"><div class="empty">No sales in this period.</div></td></tr>') +
+    '</tbody></table></div></div>' +
+  '</div>' +
+  '<div class="grid g2">' +
+    '<div class="card"><div class="card-h"><h3>Product-wise sales</h3></div><div class="table-wrap" style="max-height:340px;overflow-y:auto"><table class="tbl"><thead><tr><th>Product</th><th class="r">Qty</th><th class="r">Revenue ₹</th><th class="r">Profit ₹</th></tr></thead><tbody>' +
+      (prodRows.length ? prodRows.map(p => '<tr><td><b>' + esc(p.name) + '</b> <span class="chip">' + esc(p.sku) + '</span></td><td class="r num">' + p.qty + '</td><td class="r num">' + fmt(p.rev) + '</td><td class="r num" style="color:var(--green)">' + fmt(p.rev - p.cost) + '</td></tr>').join('') : '<tr><td colspan="4"><div class="empty">No sales in this period.</div></td></tr>') +
+    '</tbody></table></div></div>' +
+    '<div class="card"><div class="card-h"><h3>Day-wise sales</h3></div><div class="table-wrap" style="max-height:340px;overflow-y:auto"><table class="tbl"><thead><tr><th>Date</th><th class="r">Bills</th><th class="r">GST ₹</th><th class="r">Sales ₹</th></tr></thead><tbody>' +
+      (dayRows.length ? dayRows.map(d => '<tr><td>' + dstr(d.date) + '</td><td class="r num">' + d.n + '</td><td class="r num">' + fmt2(d.tax) + '</td><td class="r num"><b>' + fmt(d.total) + '</b></td></tr>').join('') : '<tr><td colspan="4"><div class="empty">No sales in this period.</div></td></tr>') +
+    '</tbody></table></div></div>' +
+  '</div>';
+};
+
+/* ============================================================
+   USER ROLES
+   ============================================================ */
+VIEWS.users = function() {
+  return '' +
+  '<div class="page-h"><h2>User roles</h2><span class="sub">Admin — full control · Manager — everything except users &amp; settings · Cashier — billing counter</span>' +
+    '<div class="r"><button class="btn primary" onclick="userForm()">+ Add user</button></div></div>' +
+  '<div class="card"><div class="table-wrap"><table class="tbl"><thead><tr><th>Name</th><th>Username</th><th>Role</th><th>Status</th><th></th></tr></thead><tbody>' +
+  DB.users.map(u => {
+    const me = u.id === S.user.id;
+    return '<tr><td><b>' + esc(u.name) + '</b>' + (me ? ' <span class="tag blue">You</span>' : '') + '</td><td class="mono">' + esc(u.username) + '</td>' +
+      '<td><span class="tag ' + (u.role === 'admin' ? 'red' : u.role === 'manager' ? 'amber' : 'grey') + '">' + u.role + '</span></td>' +
+      '<td>' + (u.active !== false ? '<span class="tag green">Active</span>' : '<span class="tag grey">Disabled</span>') + '</td>' +
+      '<td class="r" style="white-space:nowrap"><button class="btn sm ghost" onclick="userForm(\'' + u.id + '\')">Edit</button>' +
+      (me ? '' : ' <button class="btn sm ghost" onclick="toggleUser(\'' + u.id + '\')">' + (u.active !== false ? 'Disable' : 'Enable') + '</button>') + '</td></tr>';
+  }).join('') +
+  '</tbody></table></div></div>';
+};
+function userForm(id) {
+  const u = id ? DB.users.find(x => x.id === id) : null;
+  const body =
+    '<div class="frow"><div class="field"><label>Full name</label><input id="uf-name" value="' + (u ? esc(u.name) : '') + '"></div>' +
+    '<div class="field"><label>Role</label><select id="uf-role">' + ROLES.map(r => '<option' + (u && u.role === r ? ' selected' : '') + '>' + r + '</option>').join('') + '</select></div></div>' +
+    '<div class="frow"><div class="field"><label>Username</label><input id="uf-user" class="mono" value="' + (u ? esc(u.username) : '') + '"></div>' +
+    '<div class="field"><label>Password</label><input id="uf-pass" class="mono" value="' + (u ? esc(u.password) : '') + '"></div></div>';
+  openModal(modalShell(u ? 'Edit user' : 'Add user', body,
+    '<button class="btn" onclick="closeModal()">Cancel</button><button class="btn primary" onclick="saveUser(' + (u ? '\'' + u.id + '\'' : 'null') + ')">' + (u ? 'Save changes' : 'Add user') + '</button>'));
+}
+function saveUser(id) {
+  const name = $('#uf-name').value.trim(), username = $('#uf-user').value.trim(), pass = $('#uf-pass').value;
+  if (!name || !username || !pass) { toast('All fields are required', true); return; }
+  if (DB.users.find(u => u.username === username && u.id !== id)) { toast('Username already taken', true); return; }
+  const data = { name, username, password: pass, role: $('#uf-role').value };
+  if (id) { Object.assign(DB.users.find(u => u.id === id), data); toast('User updated'); }
+  else { DB.users.push(Object.assign({ id: nid(), active: true }, data)); toast('User added'); }
+  closeModal(); render();
+}
+function toggleUser(id) {
+  const u = DB.users.find(x => x.id === id);
+  u.active = u.active === false;
+  toast(u.name + (u.active ? ' enabled' : ' disabled'));
+  render();
+}
+
+/* ============================================================
+   SETTINGS — shop profile, backup, reset
+   ============================================================ */
+VIEWS.settings = function() {
+  const s = DB.settings;
+  return '' +
+  '<div class="page-h"><h2>Settings</h2></div>' +
+  '<div class="grid g2">' +
+    '<div class="card"><div class="card-h"><h3>Shop profile — printed on every invoice</h3></div><div class="card-b">' +
+      '<div class="field"><label>Shop name</label><input id="st-name" value="' + esc(s.shopName) + '"></div>' +
+      '<div class="field"><label>Tagline</label><input id="st-tag" value="' + esc(s.tagline) + '"></div>' +
+      '<div class="field"><label>Address</label><input id="st-addr" value="' + esc(s.address) + '"></div>' +
+      '<div class="frow"><div class="field"><label>Phone</label><input id="st-phone" value="' + esc(s.phone) + '"></div>' +
+      '<div class="field"><label>GSTIN</label><input id="st-gstin" class="mono" value="' + esc(s.gstin) + '"></div></div>' +
+      '<div class="frow"><div class="field"><label>UPI ID (payment QR)</label><input id="st-upi" class="mono" value="' + esc(s.upi) + '"></div>' +
+      '<div class="field"><label>Invoice prefix</label><input id="st-prefix" class="mono" value="' + esc(s.invPrefix) + '"></div></div>' +
+      '<div class="field"><label>Invoice terms</label><textarea id="st-terms" rows="3">' + esc(s.terms) + '</textarea></div>' +
+      '<button class="btn primary" onclick="saveSettings()">Save settings</button>' +
+    '</div></div>' +
+    '<div class="card"><div class="card-h"><h3>Data — backup &amp; restore</h3></div><div class="card-b">' +
+      '<p class="section-note">This demo keeps everything in memory, so a refresh returns to the seeded data. Download a JSON backup to save your work, and load it back any time. Wiring this to the Node/Express + MongoDB backend makes it fully persistent.</p>' +
+      '<div style="display:flex;gap:8px;flex-wrap:wrap">' +
+        '<button class="btn" onclick="exportData()">Download backup (.json)</button>' +
+        '<label class="btn" style="cursor:pointer">Load backup<input type="file" accept=".json" style="display:none" onchange="importData(this)"></label>' +
+        '<button class="btn danger" onclick="resetData()">Reset demo data</button>' +
+      '</div>' +
+    '</div></div>' +
+  '</div>';
+};
+function saveSettings() {
+  Object.assign(DB.settings, {
+    shopName: $('#st-name').value.trim() || 'STC Connect', tagline: $('#st-tag').value.trim(),
+    address: $('#st-addr').value.trim(), phone: $('#st-phone').value.trim(),
+    gstin: $('#st-gstin').value.trim().toUpperCase(), upi: $('#st-upi').value.trim(),
+    invPrefix: $('#st-prefix').value.trim() || 'STC', terms: $('#st-terms').value.trim()
+  });
+  toast('Settings saved');
+}
+function exportData() {
+  const blob = new Blob([JSON.stringify(DB, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'stc-connect-backup-' + dayKey(Date.now()) + '.json';
+  a.click();
+  URL.revokeObjectURL(a.href);
+  toast('Backup downloaded');
+}
+function importData(input) {
+  const f = input.files && input.files[0]; if (!f) return;
+  const r = new FileReader();
+  r.onload = () => {
+    try {
+      const d = JSON.parse(r.result);
+      if (!d.products || !d.bills || !d.settings) throw new Error('bad file');
+      DB = d;
+      toast('Backup loaded — ' + DB.bills.length + ' bills, ' + DB.products.length + ' products');
+      render();
+    } catch (e) { toast('That file is not a valid STC Connect backup', true); }
+  };
+  r.readAsText(f);
+  input.value = '';
+}
+function resetData() {
+  openModal(modalShell('Reset demo data', '<p>This clears every change and reloads the original seeded shop. Download a backup first if you want to keep anything.</p>',
+    '<button class="btn" onclick="closeModal()">Cancel</button><button class="btn danger" onclick="(function(){ const u = S.user.username; seed(); S.user = DB.users.find(x => x.username === u) || DB.users[0]; S.cart = []; closeModal(); buildNav(); render(); toast(\'Demo data reset\'); })()">Reset everything</button>'));
+}
+
+/* ============================================================
+   INIT
+   ============================================================ */
+function initClock() {
+  const el = $('#top-date');
+  const tick = () => { el.textContent = new Date().toLocaleDateString('en-IN', { weekday: 'short', day: '2-digit', month: 'short', year: 'numeric' }) + ' · ' + new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' }); };
+  tick(); setInterval(tick, 30000);
+}
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape' && $('#modal-root').classList.contains('on')) closeModal();
+  if (e.key === 'Enter' && $('#login').style.display !== 'none' && (document.activeElement === $('#lg-user') || document.activeElement === $('#lg-pass'))) doLogin();
+});
+seed();
+S.custId = DB.customers[0].id;
+initClock();
+
+/* expose state for console debugging & tests */
+try {
+  Object.defineProperty(window, 'DB', { get: () => DB, set: v => { DB = v; }, configurable: true });
+  window.S = S;
+} catch (e) { /* no-op */ }
+</script>
+</body>
+</html>
